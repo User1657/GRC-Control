@@ -3,136 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enterprise GRC – Full Risk & Controls</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <title>GRC Enterprise – Risk & Controls</title>
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
         body{font-family:'Segoe UI',system-ui;background:#0a0c12;color:#e2e8f0;display:flex}
-        .sidebar{width:280px;background:#11161f;border-right:1px solid #2d3748;min-height:100vh;position:fixed;overflow-y:auto}
-        .logo{padding:20px;font-size:20px;font-weight:bold;border-bottom:1px solid #2d3748;color:#7c6af7}
-        .nav{padding:16px 8px}
-        .nav-item{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;background:none;border:none;color:#94a3b8;font-size:14px;text-align:left;border-radius:8px;cursor:pointer;margin-bottom:2px}
+        .sidebar{width:260px;background:#11161f;border-right:1px solid #2d3748;min-height:100vh;position:fixed;overflow-y:auto}
+        .logo{padding:20px;font-size:20px;font-weight:bold;color:#7c6af7}
+        .nav{padding:16px}
+        .nav-item{display:block;width:100%;padding:10px;background:none;border:none;color:#94a3b8;text-align:left;border-radius:8px;cursor:pointer;margin-bottom:4px}
         .nav-item:hover{background:#1a202c;color:white}
         .nav-item.active{background:#7c6af7;color:white}
-        .main{margin-left:280px;flex:1;min-height:100vh}
+        .main{margin-left:260px;flex:1;min-height:100vh}
         .topbar{padding:16px 24px;background:#11161f;border-bottom:1px solid #2d3748;display:flex;justify-content:space-between}
         .topbar-title{font-size:20px;font-weight:600}
         .content{padding:24px}
-        .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
-        .stat-card{background:#11161f;border:1px solid #2d3748;border-radius:12px;padding:16px}
-        .stat-value{font-size:28px;font-weight:700;color:#7c6af7}
-        .btn{background:#7c6af7;color:white;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px}
+        .btn{background:#7c6af7;color:white;border:none;padding:8px 16px;border-radius:8px;cursor:pointer}
         .btn-outline{background:transparent;border:1px solid #4a5568;color:#cbd5e1}
-        .table-container{overflow-x:auto;margin-top:16px}
-        table{width:100%;border-collapse:collapse}
-        th,td{padding:12px;text-align:left;border-bottom:1px solid #2d3748}
-        .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+        table{width:100%;border-collapse:collapse;margin-top:16px}
+        th,td{padding:10px;text-align:left;border-bottom:1px solid #2d3748}
+        .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px}
         .badge-critical{background:#ef444420;color:#ef4444}
         .badge-high{background:#f59e0b20;color:#f59e0b}
         .badge-medium{background:#3b82f620;color:#60a5fa}
-        .badge-low{background:#10b98120;color:#10b981}
         .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:1000}
-        .modal{background:#1a202c;border-radius:16px;width:700px;max-width:90%;padding:24px;max-height:80vh;overflow-y:auto}
-        .form-group{margin-bottom:16px}
-        input,select,textarea{width:100%;background:#0f1117;border:1px solid #2d3748;padding:8px 12px;border-radius:8px;color:white}
-        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+        .modal{background:#1a202c;border-radius:16px;width:600px;max-width:90%;padding:20px;max-height:80vh;overflow-y:auto}
+        .form-group{margin-bottom:15px}
+        input,select,textarea{width:100%;background:#0f1117;border:1px solid #2d3748;padding:8px;border-radius:6px;color:white}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
         .hidden{display:none}
         .toast{position:fixed;bottom:20px;right:20px;background:#1e293b;padding:12px 20px;border-radius:8px;z-index:1100}
         #loginOverlay{position:fixed;inset:0;background:#0a0c12;display:flex;align-items:center;justify-content:center;z-index:2000}
-        .login-card{background:#11161f;border:1px solid #2d3748;border-radius:16px;padding:32px;width:350px;text-align:center}
-        .login-card input{margin:16px 0}
-        .error-msg{color:#ef4444;font-size:13px;margin-top:8px}
-        @media (max-width:768px){.sidebar{width:220px}.main{margin-left:220px}}
+        .login-card{background:#11161f;border-radius:16px;padding:32px;width:350px;text-align:center}
+        .login-card input{margin:16px 0;width:100%}
+        .error-msg{color:#ef4444;margin-top:8px}
     </style>
 </head>
 <body>
-<div id="loginOverlay"><div class="login-card"><h2>🔐 GRC Enterprise</h2><p style="margin:16px 0;color:#94a3b8">Enter password</p><input type="password" id="passwordInput" placeholder="Password" autofocus><button class="btn" id="loginBtn" style="width:100%">Login</button><div id="loginError" class="error-msg"></div></div></div>
-<div id="grcApp" style="display:none"><div class="sidebar"><div class="logo">🎯 GRC Enterprise</div><div class="nav" id="navContainer"></div></div><div class="main" id="mainContent"></div></div>
-<div id="modal" class="modal-overlay hidden"><div class="modal"><div id="modalBody"></div><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:20px"><button class="btn btn-outline" onclick="closeModal()">Cancel</button><button class="btn" onclick="saveModal()">Save</button></div></div></div>
+<div id="loginOverlay">
+    <div class="login-card">
+        <h2>🔐 GRC Enterprise</h2>
+        <p style="margin:16px 0">Enter password</p>
+        <input type="password" id="passwordInput" placeholder="Password">
+        <button class="btn" id="loginBtn" style="width:100%">Login</button>
+        <div id="loginError" class="error-msg"></div>
+    </div>
+</div>
+<div id="grcApp" style="display:none">
+    <div class="sidebar">
+        <div class="logo">🎯 GRC Enterprise</div>
+        <div class="nav" id="navContainer"></div>
+    </div>
+    <div class="main" id="mainContent"></div>
+</div>
+<div id="modal" class="modal-overlay hidden">
+    <div class="modal">
+        <div id="modalBody"></div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:20px">
+            <button class="btn-outline" onclick="closeModal()">Cancel</button>
+            <button class="btn" onclick="saveModal()">Save</button>
+        </div>
+    </div>
+</div>
 <div id="toast" class="toast hidden"></div>
-<script>
-// Password handling (same as before)
-const DEFAULT_PASS_B64 = btoa("admin123");
-let storedPassword = localStorage.getItem('grc_password_hash') || DEFAULT_PASS_B64;
-if(!localStorage.getItem('grc_password_hash')) localStorage.setItem('grc_password_hash', DEFAULT_PASS_B64);
-function verifyPassword(plain){ return btoa(plain) === storedPassword; }
-function setNewPassword(plain){ localStorage.setItem('grc_password_hash', btoa(plain)); toast("Password changed. Please login again."); logout(); }
-function logout(){ sessionStorage.removeItem('grc_logged_in'); document.getElementById('grcApp').style.display='none'; document.getElementById('loginOverlay').style.display='flex'; document.getElementById('passwordInput').value=''; }
-function checkLogin(){ if(sessionStorage.getItem('grc_logged_in')==='true'){ document.getElementById('loginOverlay').style.display='none'; document.getElementById('grcApp').style.display='block'; initApp(); } else { document.getElementById('loginOverlay').style.display='flex'; document.getElementById('grcApp').style.display='none'; } }
-document.getElementById('loginBtn').addEventListener('click',()=>{ const pwd=document.getElementById('passwordInput').value; if(verifyPassword(pwd)){ sessionStorage.setItem('grc_logged_in','true'); checkLogin(); } else { document.getElementById('loginError').innerText='Incorrect password.'; } });
-document.getElementById('passwordInput').addEventListener('keypress',(e)=>{ if(e.key==='Enter') document.getElementById('loginBtn').click(); });
 
-// ---------- Data Model ----------
-const STORE_KEY = 'grc_enterprise_v4';
+<script>
+// ======================== PASSWORD PROTECTION ========================
+const DEFAULT_PASS = "admin123";
+function verifyPassword(pwd) { return pwd === DEFAULT_PASS; }
+function logout() { sessionStorage.removeItem('grc_logged_in'); document.getElementById('loginOverlay').style.display='flex'; document.getElementById('grcApp').style.display='none'; }
+function checkLogin() {
+    if(sessionStorage.getItem('grc_logged_in') === 'true') {
+        document.getElementById('loginOverlay').style.display='none';
+        document.getElementById('grcApp').style.display='block';
+        initApp();
+    } else {
+        document.getElementById('loginOverlay').style.display='flex';
+        document.getElementById('grcApp').style.display='none';
+    }
+}
+document.getElementById('loginBtn').onclick = function() {
+    const pwd = document.getElementById('passwordInput').value;
+    if(verifyPassword(pwd)) {
+        sessionStorage.setItem('grc_logged_in', 'true');
+        checkLogin();
+    } else {
+        document.getElementById('loginError').innerText = 'Incorrect password';
+    }
+};
+document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+    if(e.key === 'Enter') document.getElementById('loginBtn').click();
+});
+
+// ======================== DATA MODEL ========================
+const STORE_KEY = 'grc_simple_v1';
 let data = JSON.parse(localStorage.getItem(STORE_KEY)) || {
     risks: [],
-    riskAppetite: { Cyber: "Medium", Compliance: "Low", Financial: "Medium", Operational: "High", Strategic: "Medium" },
-    assets: [],
-    businessProcesses: [],
-    orgUnits: [],
-    controls: [],
-    actionPlans: [],
-    issues: [],
-    incidents: [],
-    vendors: [],
-    compliance: [],
-    auditFindings: [],
-    evidence: [],
-    kris: [],
-    workflows: [],
-    auditLog: []
+    controls: []
 };
 
-// Seed demo data with all new fields
-if(data.risks.length === 0){
-    data.risks = [{
-        id: "RSK-001", name: "Data Breach", description: "Unauthorized access to sensitive data", category: "Cyber", subCategory: "Data Security",
-        businessUnit: "IT", department: "Infrastructure", owner: "Ahmed", dateIdentified: "2025-01-15", lastReviewDate: "2025-06-01",
-        likelihood: 4, impact: 5, inherentScore: 20, residualScore: 8, riskRating: "High", trend: "Increasing", riskVelocity: "High", confidenceLevel: "Medium",
-        treatmentStrategy: "Mitigate", treatmentStatus: "In Progress", targetResidualScore: 5, targetClosureDate: "2025-09-30", riskAccepted: "No", acceptedBy: "Risk Committee"
-    },{
-        id: "RSK-002", name: "Supply Chain Disruption", description: "Key supplier failure", category: "Operational", subCategory: "Logistics",
-        businessUnit: "Operations", department: "Procurement", owner: "Sara", dateIdentified: "2025-02-01", lastReviewDate: "2025-06-15",
-        likelihood: 3, impact: 4, inherentScore: 12, residualScore: 6, riskRating: "Medium", trend: "Stable", riskVelocity: "Medium", confidenceLevel: "High",
-        treatmentStrategy: "Transfer", treatmentStatus: "Not Started", targetResidualScore: 4, targetClosureDate: "2025-08-30", riskAccepted: "No", acceptedBy: ""
-    },{
-        id: "RSK-003", name: "GDPR Fine", description: "Non-compliance with data protection", category: "Compliance", subCategory: "Regulatory",
-        businessUnit: "Legal", department: "Compliance", owner: "Khalid", dateIdentified: "2025-01-20", lastReviewDate: "2025-05-20",
-        likelihood: 2, impact: 5, inherentScore: 10, residualScore: 4, riskRating: "Medium", trend: "Decreasing", riskVelocity: "Low", confidenceLevel: "High",
-        treatmentStrategy: "Mitigate", treatmentStatus: "In Progress", targetResidualScore: 3, targetClosureDate: "2025-07-31", riskAccepted: "No", acceptedBy: ""
-    }];
-    data.controls = [{
-        id: "CTL-001", name: "Multi-Factor Authentication", type: "Preventive", effectiveness: 90, owner: "IT", lastTested: "2025-03-01",
-        linkedControls: "MFA, DLP", controlCount: 2, controlStatus: "Effective"
-    },{
-        id: "CTL-002", name: "Vendor Security Assessment", type: "Detective", effectiveness: 70, owner: "Procurement", lastTested: "2025-02-15",
-        linkedControls: "Vendor audits", controlCount: 1, controlStatus: "Partially Effective"
-    }];
-    data.assets = [{ id: "AST-001", name: "Customer DB", type: "Database", criticality: "Critical", owner: "IT", location: "AWS", riskIds: ["RSK-001"] }];
-    data.businessProcesses = [{ id: "PROC-001", name: "Payroll", owner: "Finance", assets: [], risks: [] }];
-    data.orgUnits = [{ id: "BU-1", name: "Finance", type: "Business Unit" }];
-    data.actionPlans = [{ id: "ACT-001", title: "Implement MFA", owner: "Ahmed", dueDate: "2025-06-01", progress: 60, status: "In Progress", riskId: "RSK-001" }];
-    data.issues = [{ id: "ISS-001", title: "Phishing high rate", source: "Incident", priority: "High", owner: "IT", dueDate: "2025-05-01", status: "Open", riskId: "RSK-001" }];
-    data.incidents = [{ id: "INC-001", title: "Phishing email", type: "Security", date: "2025-02-10", status: "Investigating", riskId: "RSK-001" }];
-    data.vendors = [{ id: "VEN-001", name: "Cloud Provider", service: "IaaS", criticality: "High", contractExpiry: "2026-12-31", score: 85 }];
-    data.compliance = [{ framework: "ISO 27001", requirement: "Access Control", status: "Partial", owner: "IT", dueDate: "2025-12-31", progress: 60, mappedControls: ["CTL-001"] }];
-    data.auditFindings = [{ id: "AUD-001", title: "Weak password", severity: "High", auditType: "Internal", owner: "IT", status: "Open", dueDate: "2025-04-30" }];
-    data.evidence = [{ id: "EVD-001", name: "MFA config", type: "Screenshot", linkedTo: "CTL-001", uploadDate: "2025-03-01" }];
-    data.kris = [{ name: "Failed Logins", current: 320, threshold: 500, unit: "count" }];
-    saveData();
+if(data.risks.length === 0) {
+    data.risks = [
+        {
+            id: "RSK-001", name: "Data Breach", description: "Unauthorized access to sensitive data",
+            category: "Cyber", subCategory: "Data Security", businessUnit: "IT", department: "Infrastructure",
+            owner: "Ahmed", dateIdentified: "2025-01-15", lastReviewDate: "2025-06-01",
+            likelihood: 4, impact: 5, inherentScore: 20, residualScore: 8,
+            trend: "Increasing", riskVelocity: "High", confidenceLevel: "Medium",
+            treatmentStrategy: "Mitigate", treatmentStatus: "In Progress", targetResidualScore: 5,
+            targetClosureDate: "2025-09-30", riskAccepted: "No", acceptedBy: "Risk Committee"
+        },
+        {
+            id: "RSK-002", name: "Supply Chain Disruption", description: "Key supplier failure",
+            category: "Operational", subCategory: "Logistics", businessUnit: "Operations", department: "Procurement",
+            owner: "Sara", dateIdentified: "2025-02-01", lastReviewDate: "2025-06-15",
+            likelihood: 3, impact: 4, inherentScore: 12, residualScore: 6,
+            trend: "Stable", riskVelocity: "Medium", confidenceLevel: "High",
+            treatmentStrategy: "Transfer", treatmentStatus: "Not Started", targetResidualScore: 4,
+            targetClosureDate: "2025-08-30", riskAccepted: "No", acceptedBy: ""
+        },
+        {
+            id: "RSK-003", name: "GDPR Fine", description: "Non-compliance with data protection",
+            category: "Compliance", subCategory: "Regulatory", businessUnit: "Legal", department: "Compliance",
+            owner: "Khalid", dateIdentified: "2025-01-20", lastReviewDate: "2025-05-20",
+            likelihood: 2, impact: 5, inherentScore: 10, residualScore: 4,
+            trend: "Decreasing", riskVelocity: "Low", confidenceLevel: "High",
+            treatmentStrategy: "Mitigate", treatmentStatus: "In Progress", targetResidualScore: 3,
+            targetClosureDate: "2025-07-31", riskAccepted: "No", acceptedBy: ""
+        }
+    ];
+    data.controls = [
+        { id: "CTL-001", name: "Multi-Factor Authentication", type: "Preventive", effectiveness: 90, owner: "IT", lastTested: "2025-03-01", linkedControls: "MFA, DLP", controlCount: 2, controlStatus: "Effective" },
+        { id: "CTL-002", name: "Vendor Security Assessment", type: "Detective", effectiveness: 70, owner: "Procurement", lastTested: "2025-02-15", linkedControls: "Vendor audits", controlCount: 1, controlStatus: "Partially Effective" }
+    ];
+    localStorage.setItem(STORE_KEY, JSON.stringify(data));
 }
-function saveData(){ localStorage.setItem(STORE_KEY,JSON.stringify(data)); addAuditLog("Data saved"); }
-function addAuditLog(action){ data.auditLog.unshift({timestamp:new Date().toISOString(),user:"admin",action}); if(data.auditLog.length>100) data.auditLog.pop(); saveData(); }
-function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.remove('hidden'); setTimeout(()=>t.classList.add('hidden'),3000); }
+function saveData() { localStorage.setItem(STORE_KEY, JSON.stringify(data)); }
+function toast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.remove('hidden'); setTimeout(()=>t.classList.add('hidden'),3000); }
 
-function getRiskRating(score){ if(score>=16) return "Critical"; if(score>=9) return "High"; if(score>=4) return "Medium"; return "Low"; }
-function getRiskRatingClass(score){ return "badge-"+getRiskRating(score).toLowerCase(); }
+function getRiskRating(score) {
+    if(score>=16) return "Critical";
+    if(score>=9) return "High";
+    if(score>=4) return "Medium";
+    return "Low";
+}
+function getRiskRatingClass(score) { return "badge-"+getRiskRating(score).toLowerCase(); }
 
-// ---------- RISK REGISTER (full fields) ----------
-function renderRiskRegister(){
+// ======================== RISK REGISTER (full fields table) ========================
+function renderRiskRegister() {
     let html = `<div class="topbar"><div class="topbar-title">Risk Register</div><button class="btn" onclick="openModal('risk')">+ New Risk</button></div>
-    <div class="content"><div class="table-container"><table><thead><tr>
-        <th>ID</th><th>Name</th><th>Description</th><th>Category</th><th>Sub Cat</th><th>Business Unit</th><th>Dept</th><th>Owner</th><th>Inherent</th><th>Residual</th><th>Rating</th><th>Status</th><th>Actions</th>
+    <div class="content"><div style="overflow-x:auto"><table><thead><tr>
+        <th>ID</th><th>Name</th><th>Description</th><th>Category</th><th>Sub Cat</th><th>Business Unit</th><th>Dept</th>
+        <th>Owner</th><th>Inherent</th><th>Residual</th><th>Rating</th><th>Status</th><th>Actions</th>
     </tr></thead><tbody>`;
     data.risks.forEach(r => {
         html += `<tr>
@@ -148,13 +169,13 @@ function renderRiskRegister(){
     document.getElementById('mainContent').innerHTML = html;
 }
 
-// ---------- RISK ASSESSMENT & TREATMENT (inline editable) ----------
-function renderRiskAssessment(){
+// ======================== RISK ASSESSMENT & TREATMENT (inline edit) ========================
+function renderRiskAssessment() {
     let html = `<div class="topbar"><div class="topbar-title">Risk Assessment & Treatment</div></div>
-    <div class="content"><div class="table-container"><td><thead><tr>
+    <div class="content"><div style="overflow-x:auto"><table><thead><tr>
         <th>Risk</th><th>Likelihood</th><th>Impact</th><th>Inherent</th><th>Residual</th><th>Rating</th>
-        <th>Trend</th><th>Velocity</th><th>Confidence</th>
-        <th>Treatment Strategy</th><th>Treatment Status</th><th>Target Residual</th><th>Target Date</th><th>Accepted?</th><th>Action</th>
+        <th>Trend</th><th>Velocity</th><th>Confidence</th><th>Treatment Strategy</th><th>Treatment Status</th>
+        <th>Target Residual</th><th>Target Date</th><th>Accepted?</th><th>Action</th>
     </tr></thead><tbody>`;
     data.risks.forEach(r => {
         html += `<tr>
@@ -164,23 +185,24 @@ function renderRiskAssessment(){
             <td id="inh-${r.id}">${r.inherentScore}</td>
             <td><input type="number" id="res-${r.id}" value="${r.residualScore}" style="width:70px"></td>
             <td><span class="badge ${getRiskRatingClass(r.inherentScore)}">${getRiskRating(r.inherentScore)}</span></td>
-            <td><select id="trend-${r.id}"><option ${r.trend==='Increasing'?'selected':''}>Increasing</option><option ${r.trend==='Stable'?'selected':''}>Stable</option><option ${r.trend==='Decreasing'?'selected':''}>Decreasing</option></select></td>
-            <td><select id="vel-${r.id}"><option ${r.riskVelocity==='High'?'selected':''}>High</option><option ${r.riskVelocity==='Medium'?'selected':''}>Medium</option><option ${r.riskVelocity==='Low'?'selected':''}>Low</option></select></td>
-            <td><select id="conf-${r.id}"><option ${r.confidenceLevel==='High'?'selected':''}>High</option><option ${r.confidenceLevel==='Medium'?'selected':''}>Medium</option><option ${r.confidenceLevel==='Low'?'selected':''}>Low</option></select></td>
-            <td><select id="strat-${r.id}"><option ${r.treatmentStrategy==='Mitigate'?'selected':''}>Mitigate</option><option ${r.treatmentStrategy==='Transfer'?'selected':''}>Transfer</option><option ${r.treatmentStrategy==='Accept'?'selected':''}>Accept</option><option ${r.treatmentStrategy==='Avoid'?'selected':''}>Avoid</option></select></td>
-            <td><select id="treatStatus-${r.id}"><option ${r.treatmentStatus==='Not Started'?'selected':''}>Not Started</option><option ${r.treatmentStatus==='In Progress'?'selected':''}>In Progress</option><option ${r.treatmentStatus==='Completed'?'selected':''}>Completed</option></select></td>
+            <td><select id="trend-${r.id}">${["Increasing","Stable","Decreasing"].map(o=>`<option ${r.trend===o?'selected':''}>${o}</option>`).join('')}</select></td>
+            <td><select id="vel-${r.id}">${["High","Medium","Low"].map(o=>`<option ${r.riskVelocity===o?'selected':''}>${o}</option>`).join('')}</select></td>
+            <td><select id="conf-${r.id}">${["High","Medium","Low"].map(o=>`<option ${r.confidenceLevel===o?'selected':''}>${o}</option>`).join('')}</select></td>
+            <td><select id="strat-${r.id}">${["Mitigate","Transfer","Accept","Avoid"].map(o=>`<option ${r.treatmentStrategy===o?'selected':''}>${o}</option>`).join('')}</select></td>
+            <td><select id="treatStatus-${r.id}">${["Not Started","In Progress","Completed"].map(o=>`<option ${r.treatmentStatus===o?'selected':''}>${o}</option>`).join('')}</select></td>
             <td><input type="number" id="targetRes-${r.id}" value="${r.targetResidualScore||0}" style="width:70px"></td>
             <td><input type="date" id="targetDate-${r.id}" value="${r.targetClosureDate||''}"></td>
             <td><select id="accepted-${r.id}"><option ${r.riskAccepted==='Yes'?'selected':''}>Yes</option><option ${r.riskAccepted==='No'?'selected':''}>No</option></select></td>
-            <td><button class="btn" onclick="updateRiskAssessment('${r.id}')">Update</button></td>
+            <td><button class="btn" onclick="updateRisk('${r.id}')">Update</button></td>
         </tr>`;
     });
     html += `</tbody></table></div></div>`;
     document.getElementById('mainContent').innerHTML = html;
 }
-window.updateRiskAssessment = function(riskId){
+
+window.updateRisk = function(riskId) {
     const r = data.risks.find(r=>r.id===riskId);
-    if(r){
+    if(r) {
         r.likelihood = parseInt(document.getElementById(`lik-${riskId}`).value);
         r.impact = parseInt(document.getElementById(`imp-${riskId}`).value);
         r.inherentScore = r.likelihood * r.impact;
@@ -194,15 +216,15 @@ window.updateRiskAssessment = function(riskId){
         r.targetClosureDate = document.getElementById(`targetDate-${riskId}`).value;
         r.riskAccepted = document.getElementById(`accepted-${riskId}`).value;
         saveData();
-        toast('Risk assessment updated');
+        toast('Risk updated');
         renderRiskAssessment();
     }
 };
 
-// ---------- CONTROLS (full fields) ----------
-function renderControls(){
+// ======================== CONTROLS ========================
+function renderControls() {
     let html = `<div class="topbar"><div class="topbar-title">Control Library</div><button class="btn" onclick="openModal('control')">+ New Control</button></div>
-    <div class="content"><div class="table-container"><table><thead><tr>
+    <div class="content"><div style="overflow-x:auto"><table><thead><tr>
         <th>ID</th><th>Name</th><th>Type</th><th>Effectiveness</th><th>Owner</th><th>Last Tested</th>
         <th>Linked Controls</th><th>Control Count</th><th>Status</th><th>Actions</th>
     </tr></thead><tbody>`;
@@ -211,59 +233,69 @@ function renderControls(){
             <td>${c.id}</td><td>${c.name}</td><td>${c.type}</td><td>${c.effectiveness}%</td>
             <td>${c.owner}</td><td>${c.lastTested}</td>
             <td>${c.linkedControls||''}</td><td>${c.controlCount||0}</td>
-            <td><span class="badge ${c.controlStatus==='Effective'?'badge-medium':'badge-critical'}">${c.controlStatus||''}</span></td>
+            <td><span class="badge">${c.controlStatus||''}</span></td>
             <td><button class="btn-outline" onclick="editControl('${c.id}')">Edit</button> <button class="btn-outline" onclick="deleteControl('${c.id}')">Del</button></td>
         </tr>`;
     });
     html += `</tbody></table></div></div>`;
     document.getElementById('mainContent').innerHTML = html;
 }
-window.editControl = function(id){ const c = data.controls.find(c=>c.id===id); if(c) openModal('control', c); };
-window.deleteControl = function(id){ if(confirm('Delete control?')){ data.controls = data.controls.filter(c=>c.id!==id); saveData(); renderControls(); toast('Deleted'); } };
 
-// ---------- MODAL for Add/Edit Risk and Control (all fields) ----------
+window.editControl = function(id) {
+    const c = data.controls.find(c=>c.id===id);
+    if(c) openModal('control', c);
+};
+window.deleteControl = function(id) {
+    if(confirm('Delete control?')) {
+        data.controls = data.controls.filter(c=>c.id!==id);
+        saveData();
+        renderControls();
+        toast('Deleted');
+    }
+};
+
+// ======================== MODAL FOR ADD/EDIT ========================
 let currentModalType = null, currentEditId = null;
-window.openModal = function(type, item){
+window.openModal = function(type, item) {
     currentModalType = type;
     currentEditId = item?.id || null;
     let form = '';
-    if(type === 'risk'){
+    if(type === 'risk') {
         const r = item || {};
         form = `<div class="form-row"><div class="form-group"><label>Risk Name</label><input id="riskName" value="${r.name||''}"></div><div class="form-group"><label>Risk ID</label><input id="riskId" value="${r.id||`RSK-${data.risks.length+1}`}"></div></div>
         <div class="form-group"><label>Description</label><textarea id="riskDesc">${r.description||''}</textarea></div>
-        <div class="form-row"><div class="form-group"><label>Category</label><select id="riskCat"><option ${r.category==='Cyber'?'selected':''}>Cyber</option><option ${r.category==='Operational'?'selected':''}>Operational</option><option ${r.category==='Compliance'?'selected':''}>Compliance</option><option ${r.category==='Financial'?'selected':''}>Financial</option><option ${r.category==='Strategic'?'selected':''}>Strategic</option></select></div>
+        <div class="form-row"><div class="form-group"><label>Category</label><select id="riskCat">${["Cyber","Operational","Compliance","Financial","Strategic"].map(cat=>`<option ${r.category===cat?'selected':''}>${cat}</option>`).join('')}</select></div>
         <div class="form-group"><label>Sub Category</label><input id="riskSubCat" value="${r.subCategory||''}"></div></div>
         <div class="form-row"><div class="form-group"><label>Business Unit</label><input id="riskBU" value="${r.businessUnit||''}"></div><div class="form-group"><label>Department</label><input id="riskDept" value="${r.department||''}"></div></div>
         <div class="form-row"><div class="form-group"><label>Risk Owner</label><input id="riskOwner" value="${r.owner||''}"></div><div class="form-group"><label>Date Identified</label><input type="date" id="riskDateId" value="${r.dateIdentified||''}"></div></div>
         <div class="form-row"><div class="form-group"><label>Last Review Date</label><input type="date" id="riskLastReview" value="${r.lastReviewDate||''}"></div><div class="form-group"><label>Likelihood (1-5)</label><input type="number" id="riskLik" value="${r.likelihood||3}" min="1" max="5"></div></div>
         <div class="form-row"><div class="form-group"><label>Impact (1-5)</label><input type="number" id="riskImp" value="${r.impact||3}" min="1" max="5"></div><div class="form-group"><label>Residual Score</label><input type="number" id="riskRes" value="${r.residualScore||0}"></div></div>
-        <div class="form-row"><div class="form-group"><label>Trend</label><select id="riskTrend"><option ${r.trend==='Increasing'?'selected':''}>Increasing</option><option ${r.trend==='Stable'?'selected':''}>Stable</option><option ${r.trend==='Decreasing'?'selected':''}>Decreasing</option></select></div>
-        <div class="form-group"><label>Risk Velocity</label><select id="riskVel"><option ${r.riskVelocity==='High'?'selected':''}>High</option><option ${r.riskVelocity==='Medium'?'selected':''}>Medium</option><option ${r.riskVelocity==='Low'?'selected':''}>Low</option></select></div></div>
-        <div class="form-row"><div class="form-group"><label>Confidence Level</label><select id="riskConf"><option ${r.confidenceLevel==='High'?'selected':''}>High</option><option ${r.confidenceLevel==='Medium'?'selected':''}>Medium</option><option ${r.confidenceLevel==='Low'?'selected':''}>Low</option></select></div>
-        <div class="form-group"><label>Treatment Strategy</label><select id="riskTreatStrat"><option ${r.treatmentStrategy==='Mitigate'?'selected':''}>Mitigate</option><option ${r.treatmentStrategy==='Transfer'?'selected':''}>Transfer</option><option ${r.treatmentStrategy==='Accept'?'selected':''}>Accept</option><option ${r.treatmentStrategy==='Avoid'?'selected':''}>Avoid</option></select></div></div>
-        <div class="form-row"><div class="form-group"><label>Treatment Status</label><select id="riskTreatStatus"><option ${r.treatmentStatus==='Not Started'?'selected':''}>Not Started</option><option ${r.treatmentStatus==='In Progress'?'selected':''}>In Progress</option><option ${r.treatmentStatus==='Completed'?'selected':''}>Completed</option></select></div>
+        <div class="form-row"><div class="form-group"><label>Trend</label><select id="riskTrend">${["Increasing","Stable","Decreasing"].map(o=>`<option ${r.trend===o?'selected':''}>${o}</option>`).join('')}</select></div>
+        <div class="form-group"><label>Risk Velocity</label><select id="riskVel">${["High","Medium","Low"].map(o=>`<option ${r.riskVelocity===o?'selected':''}>${o}</option>`).join('')}</select></div></div>
+        <div class="form-row"><div class="form-group"><label>Confidence Level</label><select id="riskConf">${["High","Medium","Low"].map(o=>`<option ${r.confidenceLevel===o?'selected':''}>${o}</option>`).join('')}</select></div>
+        <div class="form-group"><label>Treatment Strategy</label><select id="riskTreatStrat">${["Mitigate","Transfer","Accept","Avoid"].map(o=>`<option ${r.treatmentStrategy===o?'selected':''}>${o}</option>`).join('')}</select></div></div>
+        <div class="form-row"><div class="form-group"><label>Treatment Status</label><select id="riskTreatStatus">${["Not Started","In Progress","Completed"].map(o=>`<option ${r.treatmentStatus===o?'selected':''}>${o}</option>`).join('')}</select></div>
         <div class="form-group"><label>Target Residual Score</label><input type="number" id="riskTargetRes" value="${r.targetResidualScore||0}"></div></div>
         <div class="form-row"><div class="form-group"><label>Target Closure Date</label><input type="date" id="riskTargetDate" value="${r.targetClosureDate||''}"></div>
         <div class="form-group"><label>Risk Accepted</label><select id="riskAccepted"><option ${r.riskAccepted==='Yes'?'selected':''}>Yes</option><option ${r.riskAccepted==='No'?'selected':''}>No</option></select></div></div>
         <div class="form-group"><label>Accepted By</label><input id="riskAcceptedBy" value="${r.acceptedBy||''}"></div>`;
-    } else if(type === 'control'){
+    } else if(type === 'control') {
         const c = item || {};
         form = `<div class="form-row"><div class="form-group"><label>Control Name</label><input id="ctrlName" value="${c.name||''}"></div><div class="form-group"><label>Control ID</label><input id="ctrlId" value="${c.id||`CTL-${data.controls.length+1}`}"></div></div>
-        <div class="form-row"><div class="form-group"><label>Type</label><select id="ctrlType"><option ${c.type==='Preventive'?'selected':''}>Preventive</option><option ${c.type==='Detective'?'selected':''}>Detective</option><option ${c.type==='Corrective'?'selected':''}>Corrective</option></select></div>
+        <div class="form-row"><div class="form-group"><label>Type</label><select id="ctrlType">${["Preventive","Detective","Corrective"].map(t=>`<option ${c.type===t?'selected':''}>${t}</option>`).join('')}</select></div>
         <div class="form-group"><label>Effectiveness (%)</label><input type="number" id="ctrlEff" value="${c.effectiveness||0}" min="0" max="100"></div></div>
         <div class="form-row"><div class="form-group"><label>Owner</label><input id="ctrlOwner" value="${c.owner||''}"></div><div class="form-group"><label>Last Tested</label><input type="date" id="ctrlLastTested" value="${c.lastTested||''}"></div></div>
         <div class="form-row"><div class="form-group"><label>Linked Controls</label><input id="ctrlLinked" value="${c.linkedControls||''}"></div><div class="form-group"><label>Control Count</label><input type="number" id="ctrlCount" value="${c.controlCount||0}"></div></div>
-        <div class="form-group"><label>Control Status</label><select id="ctrlStatus"><option ${c.controlStatus==='Effective'?'selected':''}>Effective</option><option ${c.controlStatus==='Partially Effective'?'selected':''}>Partially Effective</option><option ${c.controlStatus==='Ineffective'?'selected':''}>Ineffective</option></select></div>`;
+        <div class="form-group"><label>Control Status</label><select id="ctrlStatus">${["Effective","Partially Effective","Ineffective"].map(s=>`<option ${c.controlStatus===s?'selected':''}>${s}</option>`).join('')}</select></div>`;
     }
     document.getElementById('modalBody').innerHTML = form;
     document.getElementById('modal').classList.remove('hidden');
 };
-window.closeModal = function(){ document.getElementById('modal').classList.add('hidden'); currentModalType=null; };
-window.saveModal = function(){
-    if(currentModalType === 'risk'){
-        const newId = document.getElementById('riskId').value;
-        const riskData = {
-            id: newId,
+window.closeModal = function() { document.getElementById('modal').classList.add('hidden'); currentModalType=null; };
+window.saveModal = function() {
+    if(currentModalType === 'risk') {
+        const newRisk = {
+            id: document.getElementById('riskId').value,
             name: document.getElementById('riskName').value,
             description: document.getElementById('riskDesc').value,
             category: document.getElementById('riskCat').value,
@@ -287,14 +319,14 @@ window.saveModal = function(){
             riskAccepted: document.getElementById('riskAccepted').value,
             acceptedBy: document.getElementById('riskAcceptedBy').value
         };
-        if(currentEditId){
+        if(currentEditId) {
             const idx = data.risks.findIndex(r=>r.id===currentEditId);
-            if(idx!==-1) data.risks[idx] = riskData;
+            if(idx!==-1) data.risks[idx] = newRisk;
         } else {
-            data.risks.push(riskData);
+            data.risks.push(newRisk);
         }
-    } else if(currentModalType === 'control'){
-        const ctrlData = {
+    } else if(currentModalType === 'control') {
+        const newControl = {
             id: document.getElementById('ctrlId').value,
             name: document.getElementById('ctrlName').value,
             type: document.getElementById('ctrlType').value,
@@ -305,11 +337,11 @@ window.saveModal = function(){
             controlCount: parseInt(document.getElementById('ctrlCount').value),
             controlStatus: document.getElementById('ctrlStatus').value
         };
-        if(currentEditId){
+        if(currentEditId) {
             const idx = data.controls.findIndex(c=>c.id===currentEditId);
-            if(idx!==-1) data.controls[idx] = ctrlData;
+            if(idx!==-1) data.controls[idx] = newControl;
         } else {
-            data.controls.push(ctrlData);
+            data.controls.push(newControl);
         }
     }
     saveData();
@@ -317,92 +349,53 @@ window.saveModal = function(){
     toast('Saved');
     renderCurrentPage();
 };
-window.editRisk = function(id){ openModal('risk', data.risks.find(r=>r.id===id)); };
-window.deleteRisk = function(id){ if(confirm('Delete risk?')){ data.risks = data.risks.filter(r=>r.id!==id); saveData(); renderCurrentPage(); toast('Deleted'); } };
+window.editRisk = function(id) { openModal('risk', data.risks.find(r=>r.id===id)); };
+window.deleteRisk = function(id) {
+    if(confirm('Delete risk?')) {
+        data.risks = data.risks.filter(r=>r.id!==id);
+        saveData();
+        renderCurrentPage();
+        toast('Deleted');
+    }
+};
 
-// ---------- OTHER MODULES (simplified but working) ----------
-function renderAssetInventory(){
-    let html = `<div class="topbar"><div class="topbar-title">Asset Inventory</div><button class="btn" onclick="toast('Add asset via modal')">+ Add Asset</button></div>
-    <div class="content"><div class="table-container"><table><thead><tr><th>ID</th><th>Name</th><th>Type</th><th>Criticality</th><th>Owner</th><th>Location</th><th>Risks</th></tr></thead><tbody>${data.assets.map(a=>`<tr><td>${a.id}</td><td>${a.name}</td><td>${a.type}</td><td>${a.criticality}</td><td>${a.owner}</td><td>${a.location}</td><td>${a.riskIds?.join(',')||''}</td></tr>`).join('')}</tbody></table></div></div>`;
-    document.getElementById('mainContent').innerHTML = html;
-}
-function renderBusinessProcess(){ let html=`<div class="topbar"><div class="topbar-title">Business Processes</div><button class="btn" onclick="toast('Add process')">+ Add Process</button></div><div class="content"><div class="table-container"><table><thead><tr><th>ID</th><th>Name</th><th>Owner</th><th>Assets</th><th>Risks</th></tr></thead><tbody>${data.businessProcesses.map(p=>`<tr><td>${p.id}</td><td>${p.name}</td><td>${p.owner}</td><td>${p.assets?.join(',')||''}</td><td>${p.risks?.join(',')||''}</td></tr>`).join('')}</tbody></table></div></div>`; document.getElementById('mainContent').innerHTML=html; }
-function renderOrgStructure(){ let html=`<div class="topbar"><div class="topbar-title">Org Structure</div><button class="btn" onclick="toast('Add org unit')">+ Add Unit</button></div><div class="content"><div class="table-container"><table><thead><tr><th>ID</th><th>Name</th><th>Type</th></tr></thead><tbody>${data.orgUnits.map(u=>`<tr><td>${u.id}</td><td>${u.name}</td><td>${u.type}</td></tr>`).join('')}</tbody></table></div></div>`; document.getElementById('mainContent').innerHTML=html; }
-function renderActionPlans(){ let html=`<div class="topbar"><div class="topbar-title">Action Plans</div><button class="btn" onclick="toast('Add action plan')">+ Add Action</button></div><div class="content"><div class="table-container"><table><thead><tr><th>Title</th><th>Owner</th><th>Due Date</th><th>Progress</th><th>Status</th></tr></thead><tbody>${data.actionPlans.map(a=>`<tr><td>${a.title}</td><td>${a.owner}</td><td>${a.dueDate}</td><td>${a.progress}%</td><td>${a.status}</td></tr>`).join('')}</tbody></table></div></div>`; document.getElementById('mainContent').innerHTML=html; }
-function renderIssues(){ let html=`<div class="topbar"><div class="topbar-title">Issues</div><button class="btn" onclick="toast('Add issue')">+ Add Issue</button></div><div class="content"><div class="table-container"><table><thead><tr><th>Title</th><th>Source</th><th>Priority</th><th>Owner</th><th>Due Date</th><th>Status</th></tr></thead><tbody>${data.issues.map(i=>`<tr><td>${i.title}</td><td>${i.source}</td><td>${i.priority}</td><td>${i.owner}</td><td>${i.dueDate}</td><td>${i.status}</td></tr>`).join('')}</tbody></table></div></div>`; document.getElementById('mainContent').innerHTML=html; }
-function renderIncidents(){ let html=`<div class="topbar"><div class="topbar-title">Incidents</div><button class="btn" onclick="toast('Log incident')">+ Log Incident</button></div><div class="content"><div class="table-container"><table><thead><tr><th>ID</th><th>Title</th><th>Type</th><th>Date</th><th>Status</th><th>Risk</th></tr></thead><tbody>${data.incidents.map(i=>`<tr><td>${i.id}</td><td>${i.title}</td><td>${i.type}</td><td>${i.date}</td><td>${i.status}</td><td>${i.riskId||''}</td></tr>`).join('')}</tbody></table></div></div>`; document.getElementById('mainContent').innerHTML=html; }
-function renderVendorRisk(){ let html=`<div class="topbar"><div class="topbar-title">Vendor Risk</div><button class="btn" onclick="toast('Add vendor')">+ Add Vendor</button></div><div class="content"><div class="table-container"><table><thead><tr><th>Vendor</th><th>Service</th><th>Criticality</th><th>Contract Expiry</th><th>Score</th></tr></thead><tbody>${data.vendors.map(v=>`<tr><td>${v.name}</td><td>${v.service}</td><td>${v.criticality}</td><td>${v.contractExpiry}</td><td>${v.score}</td></tr>`).join('')}</tbody></table></div></div>`; document.getElementById('mainContent').innerHTML=html; }
-function renderCompliance(){ let html=`<div class="topbar"><div class="topbar-title">Compliance (ISO, NIST, QCSF)</div><button class="btn" onclick="toast('Add requirement')">+ Add Requirement</button></div><div class="content"><div class="table-container"><table><thead><tr><th>Framework</th><th>Requirement</th><th>Status</th><th>Progress</th><th>Owner</th><th>Due Date</th></tr></thead><tbody>${data.compliance.map(c=>`<tr><td>${c.framework}</td><td>${c.requirement}</td><td>${c.status}</td><td>${c.progress}%</td><td>${c.owner}</td><td>${c.dueDate}</td></tr>`).join('')}</tbody></table></div></div>`; document.getElementById('mainContent').innerHTML=html; }
-function renderAuditFindings(){ let html=`<div class="topbar"><div class="topbar-title">Audit Findings</div><button class="btn" onclick="toast('Add finding')">+ Add Finding</button></div><div class="content"><div class="table-container"><table><thead><tr><th>Finding</th><th>Severity</th><th>Audit Type</th><th>Status</th><th>Due Date</th></tr></thead><tbody>${data.auditFindings.map(f=>`<tr><td>${f.title}</td><td><span class="badge ${f.severity==='High'?'badge-critical':'badge-medium'}">${f.severity}</span></td><td>${f.auditType}</td><td>${f.status}</td><td>${f.dueDate}</td></tr>`).join('')}</tbody></table></div></div>`; document.getElementById('mainContent').innerHTML=html; }
-function renderEvidence(){ let html=`<div class="topbar"><div class="topbar-title">Evidence Repository</div><button class="btn" onclick="toast('Upload evidence')">+ Upload Evidence</button></div><div class="content"><div class="table-container"><table><thead><tr><th>Name</th><th>Type</th><th>Linked To</th><th>Upload Date</th></tr></thead><tbody>${data.evidence.map(e=>`<tr><td>${e.name}</td><td>${e.type}</td><td>${e.linkedTo}</td><td>${e.uploadDate}</td></tr>`).join('')}</tbody></table></div></div>`; document.getElementById('mainContent').innerHTML=html; }
-function renderKRI(){ let html=`<div class="topbar"><div class="topbar-title">Key Risk Indicators</div><button class="btn" onclick="toast('Add KRI')">+ Add KRI</button></div><div class="content"><div class="table-container"><table><thead><tr><th>KRI</th><th>Current</th><th>Threshold</th><th>Status</th></tr></thead><tbody>${data.kris.map(k=>`<tr><td>${k.name}</td><td>${k.current}</td><td>${k.threshold}</td><td><span class="badge ${k.current>k.threshold?'badge-critical':'badge-medium'}">${k.current>k.threshold?'Exceeded':'OK'}</span></td></tr>`).join('')}</tbody></table></div></div>`; document.getElementById('mainContent').innerHTML=html; }
-function renderDashboard(){
+// ======================== DASHBOARD (simple) ========================
+function renderDashboard() {
+    const total = data.risks.length;
+    const critical = data.risks.filter(r=>getRiskRating(r.inherentScore)==='Critical').length;
+    const avgResidual = data.risks.reduce((a,r)=>a+r.residualScore,0)/total || 0;
     let html = `<div class="topbar"><div class="topbar-title">Executive Dashboard</div></div>
-    <div class="content"><div class="stat-grid">
-        <div class="stat-card"><div class="stat-value">${data.risks.length}</div><div>Total Risks</div></div>
-        <div class="stat-card"><div class="stat-value">${data.risks.filter(r=>getRiskRating(r.inherentScore)==='Critical').length}</div><div>Critical Risks</div></div>
-        <div class="stat-card"><div class="stat-value">${data.issues.filter(i=>i.status!=="Closed").length}</div><div>Open Issues</div></div>
-        <div class="stat-card"><div class="stat-value">${Math.round(data.compliance.reduce((a,c)=>a+c.progress,0)/data.compliance.length||0)}%</div><div>Compliance Score</div></div>
-    </div><div class="stat-card"><h3>⚠️ Risks Above Appetite</h3><ul>${data.risks.filter(r=>r.inherentScore>(data.riskAppetite[r.category]==="Low"?5:data.riskAppetite[r.category]==="Medium"?10:15)).map(r=>`<li>${r.name} (Score ${r.inherentScore})</li>`).join('')||'<li>None</li>'}</ul></div></div>`;
+    <div class="content">
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px">
+            <div class="stat-card"><div class="stat-value">${total}</div><div>Total Risks</div></div>
+            <div class="stat-card"><div class="stat-value">${critical}</div><div>Critical Risks</div></div>
+            <div class="stat-card"><div class="stat-value">${avgResidual.toFixed(1)}</div><div>Avg Residual Score</div></div>
+        </div>
+        <div class="stat-card" style="margin-top:20px"><h3>Risks Above Appetite</h3><ul>${data.risks.filter(r=>r.inherentScore>10).map(r=>`<li>${r.name} (${r.inherentScore})</li>`).join('')||'<li>None</li>'}</ul></div>
+    </div>`;
     document.getElementById('mainContent').innerHTML = html;
 }
-function renderWorkflow(){ let html=`<div class="topbar"><div class="topbar-title">Workflow Approvals</div></div><div class="content"><div class="stat-card"><h3>Pending Approvals</h3><ul>${data.workflows.filter(w=>w.status==='pending').map(w=>`<li>${w.itemType}: ${w.itemName} - ${w.requestor} <button class="btn" onclick="toast('Approve')">Approve</button></li>`).join('')||'<li>None</li>'}</ul><button class="btn" onclick="toast('Request approval')">Request Approval</button></div></div>`; document.getElementById('mainContent').innerHTML=html; }
-function renderAuditTrail(){ let html=`<div class="topbar"><div class="topbar-title">Audit Trail</div></div><div class="content"><div class="table-container"><table><thead><tr><th>Timestamp</th><th>User</th><th>Action</th></tr></thead><tbody>${data.auditLog.slice(0,50).map(log=>`<tr><td>${new Date(log.timestamp).toLocaleString()}</td><td>${log.user}</td><td>${log.action}</td></tr>`).join('')}</tbody></table></div></div>`; document.getElementById('mainContent').innerHTML=html; }
-function renderReports(){ let html=`<div class="topbar"><div class="topbar-title">Reports</div></div><div class="content"><div class="stat-card"><h3>Generate Report</h3><select id="reportType"><option value="risk">Risk Register</option><option value="asset">Asset Inventory</option><option value="compliance">Compliance Status</option></select><button class="btn" onclick="exportReport()">Export CSV</button></div></div>`; document.getElementById('mainContent').innerHTML=html; }
-window.exportReport=function(){ const type=document.getElementById('reportType').value; let rows=[]; if(type==='risk') rows=[['ID','Name','Category','Inherent','Residual','Rating','Owner','Status'],...data.risks.map(r=>[r.id,r.name,r.category,r.inherentScore,r.residualScore,getRiskRating(r.inherentScore),r.owner,r.treatmentStatus])]; else if(type==='asset') rows=[['ID','Name','Type','Criticality','Owner'],...data.assets.map(a=>[a.id,a.name,a.type,a.criticality,a.owner])]; else rows=[['Framework','Requirement','Status','Progress'],...data.compliance.map(c=>[c.framework,c.requirement,c.status,c.progress])]; const csv=rows.map(row=>row.map(cell=>`"${cell}"`).join(',')).join('\n'); const blob=new Blob(["\uFEFF"+csv],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`${type}_report.csv`; a.click(); toast('Report downloaded'); };
-function renderSecurity(){ let html=`<div class="topbar"><div class="topbar-title">Security Settings</div></div><div class="content"><div class="stat-card"><h3>Change Password</h3><div class="form-group"><label>Current Password</label><input type="password" id="currentPwd"></div><div class="form-group"><label>New Password</label><input type="password" id="newPwd"></div><div class="form-group"><label>Confirm New Password</label><input type="password" id="confirmPwd"></div><button class="btn" onclick="changePassword()">Update Password</button><div id="pwdMsg" class="error-msg"></div></div><div class="stat-card"><button class="btn btn-outline" onclick="logout()">Logout</button></div></div>`; document.getElementById('mainContent').innerHTML=html; }
-window.changePassword=function(){ const cur=document.getElementById('currentPwd').value; const newPwd=document.getElementById('newPwd').value; const conf=document.getElementById('confirmPwd').value; if(!verifyPassword(cur)){ document.getElementById('pwdMsg').innerText='Current password incorrect'; return; } if(newPwd.length<4){ document.getElementById('pwdMsg').innerText='Password must be at least 4 characters'; return; } if(newPwd!==conf){ document.getElementById('pwdMsg').innerText='Passwords do not match'; return; } setNewPassword(newPwd); document.getElementById('pwdMsg').innerText='Password changed. Please login again.'; setTimeout(()=>logout(),1500); };
 
-// Navigation
-let currentPage = "riskRegister";
+// ======================== NAVIGATION ========================
+let currentPage = "dashboard";
 const modules = [
     {page:"dashboard", label:"📊 Dashboard"},
     {page:"riskRegister", label:"📋 Risk Register"},
     {page:"riskAssessment", label:"📝 Risk Assessment & Treatment"},
-    {page:"controls", label:"🔒 Controls"},
-    {page:"assetInventory", label:"🏷️ Assets"},
-    {page:"businessProcess", label:"🔁 Processes"},
-    {page:"orgStructure", label:"🏢 Org Structure"},
-    {page:"actionPlans", label:"✅ Action Plans"},
-    {page:"issues", label:"❗ Issues"},
-    {page:"incidents", label:"🚨 Incidents"},
-    {page:"vendorRisk", label:"🏭 Vendor Risk"},
-    {page:"compliance", label:"📜 Compliance"},
-    {page:"auditFindings", label:"🔍 Audit Findings"},
-    {page:"evidence", label:"📎 Evidence"},
-    {page:"kri", label:"📈 KRIs"},
-    {page:"workflow", label:"🔄 Workflow"},
-    {page:"auditTrail", label:"📜 Audit Trail"},
-    {page:"reports", label:"📑 Reports"},
-    {page:"security", label:"🔐 Security"}
+    {page:"controls", label:"🔒 Controls"}
 ];
-function renderCurrentPage(){
-    if(currentPage==="dashboard") renderDashboard();
-    else if(currentPage==="riskRegister") renderRiskRegister();
-    else if(currentPage==="riskAssessment") renderRiskAssessment();
-    else if(currentPage==="controls") renderControls();
-    else if(currentPage==="assetInventory") renderAssetInventory();
-    else if(currentPage==="businessProcess") renderBusinessProcess();
-    else if(currentPage==="orgStructure") renderOrgStructure();
-    else if(currentPage==="actionPlans") renderActionPlans();
-    else if(currentPage==="issues") renderIssues();
-    else if(currentPage==="incidents") renderIncidents();
-    else if(currentPage==="vendorRisk") renderVendorRisk();
-    else if(currentPage==="compliance") renderCompliance();
-    else if(currentPage==="auditFindings") renderAuditFindings();
-    else if(currentPage==="evidence") renderEvidence();
-    else if(currentPage==="kri") renderKRI();
-    else if(currentPage==="workflow") renderWorkflow();
-    else if(currentPage==="auditTrail") renderAuditTrail();
-    else if(currentPage==="reports") renderReports();
-    else if(currentPage==="security") renderSecurity();
+function renderCurrentPage() {
+    if(currentPage === "dashboard") renderDashboard();
+    else if(currentPage === "riskRegister") renderRiskRegister();
+    else if(currentPage === "riskAssessment") renderRiskAssessment();
+    else if(currentPage === "controls") renderControls();
 }
-function initApp(){
+function initApp() {
     const navContainer = document.getElementById('navContainer');
     navContainer.innerHTML = '';
     modules.forEach(mod => {
         const btn = document.createElement('button');
-        btn.className = 'nav-item' + (mod.page===currentPage ? ' active' : '');
+        btn.className = 'nav-item' + (mod.page === currentPage ? ' active' : '');
         btn.innerText = mod.label;
         btn.onclick = () => {
             document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
