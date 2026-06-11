@@ -48,6 +48,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .btn-danger:hover{background:rgba(239,68,68,.15)}
 .btn-teal{background:var(--teal-bg);color:var(--teal);border:1px solid rgba(16,185,129,.2)}
 .btn-teal:hover{background:rgba(16,185,129,.15)}
+.btn-sm{padding:4px 8px;font-size:11px;margin-right:4px}
 .content{padding:24px 28px;flex:1}
 .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
 .stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px}
@@ -56,13 +57,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .stat-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px}
 .stat-value{font-size:26px;font-weight:700;line-height:1}
 .stat-sub{font-size:11px;color:var(--text3);margin-top:4px}
-.section-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:20px;overflow:hidden}
+.section-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:20px;overflow-x:auto}
 .section-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
 .section-title{font-size:14px;font-weight:600}
 .section-sub{font-size:12px;color:var(--text3)}
-table{width:100%;border-collapse:collapse}
+table{width:100%;border-collapse:collapse;min-width:600px}
 th{padding:10px 16px;text-align:left;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border)}
-td{padding:12px 16px;font-size:13px;border-bottom:1px solid rgba(42,51,82,.5)}
+td{padding:12px 16px;font-size:13px;border-bottom:1px solid rgba(42,51,82,.5);vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:rgba(255,255,255,.02)}
 .badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
@@ -150,7 +151,8 @@ select option{background:var(--bg3)}
 .info-box{background:var(--blue-bg);border:1px solid rgba(59,130,246,.2);border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.6}
 .info-box a{color:var(--blue)}
 .warn-box{background:var(--amber-bg);border:1px solid rgba(245,158,11,.2);border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.6}
-.asset-risk-pill{background:var(--bg4);padding:2px 8px;border-radius:12px;font-size:10px;margin-right:4px;display:inline-block}
+.asset-risk-pill{display:inline-block;background:var(--bg4);padding:2px 8px;border-radius:12px;font-size:10px;margin-right:4px;margin-bottom:2px}
+.action-buttons{white-space:nowrap}
 @media(max-width:900px){.stat-grid{grid-template-columns:repeat(2,1fr)}.kri-grid{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
@@ -179,7 +181,7 @@ select option{background:var(--bg3)}
 </nav>
 <div class="main">
 
-<!-- Dashboard (unchanged but shows asset stats) -->
+<!-- Dashboard -->
 <div class="page active" id="page-dashboard">
   <div class="topbar"><div><div class="topbar-title">Dashboard</div><div class="topbar-sub">Risk & Asset overview</div></div></div>
   <div class="content"><div class="stat-grid" id="stat-grid"></div><div class="kri-grid" id="kri-grid"></div>
@@ -188,7 +190,7 @@ select option{background:var(--bg3)}
   </div>
 </div>
 
-<!-- NEW: ASSET INVENTORY PAGE -->
+<!-- ASSET INVENTORY PAGE (fixed alignment) -->
 <div class="page" id="page-assets">
   <div class="topbar"><div><div class="topbar-title">Asset Inventory</div><div class="topbar-sub">Register and manage all critical assets</div></div><button class="btn btn-primary" onclick="openModal('asset')">+ New Asset</button></div>
   <div class="content">
@@ -199,12 +201,15 @@ select option{background:var(--bg3)}
       <select class="btn btn-ghost" onchange="filterAssets()" id="asset-filter-critical"><option value="">All Criticality</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select>
     </div>
     <div class="section-card">
-      <table><thead><tr><th>ID</th><th>Asset Name</th><th>Type</th><th>Criticality</th><th>Owner</th><th>Location</th><th>Linked Risks</th><th>Actions</th></tr></thead><tbody id="asset-table"></tbody></table>
+      <table>
+        <thead><tr><th>ID</th><th>Asset Name</th><th>Type</th><th>Criticality</th><th>Owner</th><th>Location</th><th>Linked Risks</th><th>Actions</th></tr></thead>
+        <tbody id="asset-table"></tbody>
+      </table>
     </div>
   </div>
 </div>
 
-<!-- Risk Register (extended to show linked assets) -->
+<!-- Risk Register (extended with affected assets) -->
 <div class="page" id="page-risks">
   <div class="topbar"><div><div class="topbar-title">Risk Register</div><div class="topbar-sub">Identify and track risks with asset impact</div></div><button class="btn btn-primary" onclick="openModal('risk')">+ New Risk</button></div>
   <div class="content">
@@ -212,17 +217,53 @@ select option{background:var(--bg3)}
       <input class="search-input" type="text" placeholder="Search risks…" oninput="filterRisks()" id="risk-search"/>
       <select class="btn btn-ghost" onchange="filterRisks()" id="risk-filter-cat"><option value="">All categories</option><option>Operational</option><option>Financial</option><option>Strategic</option><option>Compliance</option><option>Technology</option><option>Reputational</option></select>
     </div>
-    <div class="section-card"><table><thead><tr><th>ID</th><th>Risk</th><th>Category</th><th>Score</th><th>Severity</th><th>Owner</th><th>Status</th><th>Affected Assets</th><th>Actions</th></tr></thead><tbody id="risk-table"></tbody></table></div>
+    <div class="section-card">
+      <table>
+        <thead><tr><th>ID</th><th>Risk</th><th>Category</th><th>Score</th><th>Severity</th><th>Owner</th><th>Status</th><th>Affected Assets</th><th>Actions</th></tr></thead>
+        <tbody id="risk-table"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
-<!-- Other pages (heatmap, controls, policies, compliance, issues, email) unchanged but render functions updated to include asset linkage -->
-<div class="page" id="page-heatmap">… content unchanged (will be injected via JS)</div>
-<div class="page" id="page-controls">…</div>
-<div class="page" id="page-policies">…</div>
-<div class="page" id="page-compliance">…</div>
-<div class="page" id="page-issues">…</div>
-<div class="page" id="page-email">…</div>
+<!-- Heat Map -->
+<div class="page" id="page-heatmap">
+  <div class="topbar"><div><div class="topbar-title">Risk Heat Map</div><div class="topbar-sub">Likelihood vs Impact matrix</div></div></div>
+  <div class="content">
+    <div class="section-card"><div class="section-header"><span class="section-title">5×5 Risk Matrix</span></div><div class="heatmap-wrap" id="heatmap-container"></div></div>
+    <div class="section-card" id="heatmap-risks-section" style="display:none"><div class="section-header"><span class="section-title" id="heatmap-risks-title">Risks in selected zone</span></div><table><thead><tr><th>ID</th><th>Risk</th><th>Owner</th><th>Status</th></tr></thead><tbody id="heatmap-risks-table"></tbody></table></div>
+  </div>
+</div>
+
+<!-- Controls -->
+<div class="page" id="page-controls">
+  <div class="topbar"><div><div class="topbar-title">Controls & Mitigation</div><div class="topbar-sub">Track control effectiveness</div></div><button class="btn btn-primary" onclick="openModal('control')">+ New Control</button></div>
+  <div class="content"><div class="stat-grid" id="control-stats"></div><div class="section-card"><table><thead><tr><th>ID</th><th>Control</th><th>Type</th><th>Effectiveness</th><th>Owner</th><th>Last Tested</th><th>Mitigates</th><th>Actions</th></tr></thead><tbody id="controls-table"></tbody></table></div></div>
+</div>
+
+<!-- Policies -->
+<div class="page" id="page-policies">
+  <div class="topbar"><div><div class="topbar-title">Policies</div><div class="topbar-sub">Manage organizational policies</div></div><button class="btn btn-primary" onclick="openModal('policy')">+ New Policy</button></div>
+  <div class="content"><div class="stat-grid" id="policy-stats"></div><div class="actions-bar"><input class="search-input" placeholder="Search policies…" oninput="filterPolicies()" id="policy-search"/><select class="btn btn-ghost" onchange="filterPolicies()" id="policy-filter-status"><option value="">All statuses</option><option>Active</option><option>Draft</option><option>Under Review</option><option>Expired</option></select><select class="btn btn-ghost" onchange="filterPolicies()" id="policy-filter-cat"><option value="">All categories</option><option>Information Security</option><option>Data Privacy</option><option>Operational</option><option>HR & Conduct</option><option>Financial</option><option>IT & Technology</option></select></div><div class="policy-grid" id="policy-grid"></div></div>
+</div>
+
+<!-- Compliance -->
+<div class="page" id="page-compliance">
+  <div class="topbar"><div><div class="topbar-title">Compliance</div><div class="topbar-sub">Framework and regulatory tracking</div></div><button class="btn btn-primary" onclick="openModal('compliance')">+ Add Item</button></div>
+  <div class="content"><div class="section-card"><table><thead><tr><th>Framework</th><th>Requirement</th><th>Status</th><th>Owner</th><th>Due Date</th><th>Progress</th><th>Actions</th></tr></thead><tbody id="compliance-table"></tbody></table></div></div>
+</div>
+
+<!-- Issues -->
+<div class="page" id="page-issues">
+  <div class="topbar"><div><div class="topbar-title">Issues & Actions</div><div class="topbar-sub">Track remediation actions</div></div><button class="btn btn-primary" onclick="openModal('issue')">+ New Issue</button></div>
+  <div class="content"><div class="section-card"><table><thead><tr><th>ID</th><th>Issue</th><th>Linked Risk</th><th>Priority</th><th>Owner</th><th>Due Date</th><th>Status</th><th>Actions</th></tr></thead><tbody id="issues-table"></tbody></table></div></div>
+</div>
+
+<!-- Email Alerts -->
+<div class="page" id="page-email">
+  <div class="topbar"><div><div class="topbar-title">Email Alerts</div><div class="topbar-sub">Configure EmailJS notifications</div></div></div>
+  <div class="content"><div class="info-box">📧 Setup: <a href="https://www.emailjs.com" target="_blank">emailjs.com</a> → free account → create service & template → paste keys below</div><div class="settings-panel"><div class="settings-title">EmailJS Configuration</div><div class="form-row"><div class="form-group"><label>Public Key</label><input id="ejs-pubkey" placeholder="user_xxx"/></div><div class="form-group"><label>Service ID</label><input id="ejs-service" placeholder="service_xxx"/></div></div><div class="form-row"><div class="form-group"><label>Template ID</label><input id="ejs-template" placeholder="template_xxx"/></div><div class="form-group"><label>Your Email</label><input id="ejs-email" type="email"/></div></div><div><button class="btn btn-primary" onclick="saveEmailConfig()">💾 Save</button><button class="btn btn-teal" onclick="testEmail()">📧 Test</button></div></div><div class="settings-panel"><div class="settings-title">Alert Preferences</div><div class="toggle-row"><div><div class="toggle-label">New Critical Risk</div></div><label class="toggle"><input type="checkbox" id="alert-critical" checked/><span class="toggle-slider"></span></label></div><div class="toggle-row"><div><div class="toggle-label">New High Risk</div></div><label class="toggle"><input type="checkbox" id="alert-high" checked/><span class="toggle-slider"></span></label></div><div class="toggle-row"><div><div class="toggle-label">Issue Overdue</div></div><label class="toggle"><input type="checkbox" id="alert-overdue" checked/><span class="toggle-slider"></span></label></div><div class="toggle-row"><div><div class="toggle-label">Policy Expiring Soon</div></div><label class="toggle"><input type="checkbox" id="alert-policy" checked/><span class="toggle-slider"></span></label></div><div class="toggle-row"><div><div class="toggle-label">Compliance Due Soon</div></div><label class="toggle"><input type="checkbox" id="alert-compliance"/><span class="toggle-slider"></span></label></div><div style="margin-top:14px"><button class="btn btn-primary" onclick="saveAlertPrefs()">Save Preferences</button></div></div></div>
+</div>
 </div>
 
 <div class="modal-overlay" id="modal" style="display:none" onclick="if(event.target===this)closeModal()">
@@ -274,6 +315,8 @@ function initials(n){return n.split(' ').map(w=>w[0]).join('').slice(0,2).toUppe
 function scoreColor(s){if(s>=16)return'rgba(239,68,68,.25)';if(s>=9)return'rgba(245,158,11,.25)';if(s>=4)return'rgba(59,130,246,.2)';return'rgba(34,197,94,.15)';}
 function daysUntil(d){return Math.ceil((new Date(d)-new Date())/(1000*60*60*24));}
 function toast(msg,type='success'){const t=document.getElementById('toast'),dot=document.querySelector('#toast .toast-dot');document.getElementById('toast-msg').textContent=msg;dot.style.background=type==='error'?'var(--red)':type==='warn'?'var(--amber)':'var(--teal)';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+function escapeHtml(str){if(!str)return '';return str.replace(/[&<>]/g,function(m){if(m==='&')return'&amp;';if(m==='<')return'&lt;';if(m==='>')return'&gt;';return m;});}
+
 let modalType='',editId=null,editIdx=null;
 
 function showPage(name,el){
@@ -286,152 +329,132 @@ function showPage(name,el){
   renderMap[name]&&renderMap[name]();
 }
 
-// ----- ASSET MODULE -----
+// ASSET RENDERING (FIXED)
 function renderAssets(list){
   list=list||data.assets;
-  const total=list.length;
-  const critical=list.filter(a=>a.criticality==='Critical').length;
-  const atRisk=list.filter(a=>a.riskIds && a.riskIds.length>0).length;
-  const mappedRisks=list.reduce((acc,a)=>acc+(a.riskIds?.length||0),0);
-  document.getElementById('asset-stats').innerHTML=`<div class="stat-card"><div class="stat-top"><span class="stat-label">Total Assets</span><div class="stat-icon" style="background:#1e1a3a">🏷️</div></div><div class="stat-value" style="color:var(--purple)">${total}</div></div><div class="stat-card"><div class="stat-top"><span class="stat-label">Critical Assets</span><div class="stat-icon" style="background:var(--red-bg)">🔴</div></div><div class="stat-value" style="color:var(--red)">${critical}</div></div><div class="stat-card"><div class="stat-top"><span class="stat-label">At‑Risk Assets</span><div class="stat-icon" style="background:var(--amber-bg)">⚠️</div></div><div class="stat-value" style="color:var(--amber)">${atRisk}</div></div><div class="stat-card"><div class="stat-top"><span class="stat-label">Mapped Risks</span><div class="stat-icon" style="background:var(--blue-bg)">🔗</div></div><div class="stat-value" style="color:var(--blue)">${mappedRisks}</div></div>`;
-  document.getElementById('asset-table').innerHTML=list.length?list.map(a=>`<td><td><b>${a.id}</b></td><td>${a.name}</td><td>${a.type}</td><td><span class="badge badge-${a.criticality==='Critical'?'critical':a.criticality==='High'?'high':'medium'}">${a.criticality}</span></td><td><span class="avatar">${initials(a.owner)}</span>${a.owner.split(' ')[0]}</td><td>${a.location||'—'}</td><td>${(a.riskIds||[]).map(rid=>`<span class="asset-risk-pill">${rid}</span>`).join('')||'—'}</td><td><button class="btn btn-ghost" style="padding:4px 10px;font-size:11px" onclick="openModal('asset',data.assets.find(x=>x.id==='${a.id}'))">Edit</button> <button class="btn btn-danger" style="padding:4px 10px;font-size:11px" onclick="deleteItem('assets','${a.id}')">Del</button></td>`).join(''):`<tr><td colspan="8"><div class="empty"><div class="empty-icon">🏷️</div><div class="empty-text">No assets registered. Click + New Asset.</div></div></td></tr>`;
+  const total=list.length,critical=list.filter(a=>a.criticality==='Critical').length,atRisk=list.filter(a=>a.riskIds?.length>0).length,mappedRisks=list.reduce((acc,a)=>acc+(a.riskIds?.length||0),0);
+  document.getElementById('asset-stats').innerHTML=`<div class="stat-card"><div class="stat-top"><span class="stat-label">Total Assets</span><div class="stat-icon">🏷️</div></div><div class="stat-value">${total}</div></div><div class="stat-card"><div class="stat-top"><span class="stat-label">Critical Assets</span><div class="stat-icon">🔴</div></div><div class="stat-value">${critical}</div></div><div class="stat-card"><div class="stat-top"><span class="stat-label">At‑Risk Assets</span><div class="stat-icon">⚠️</div></div><div class="stat-value">${atRisk}</div></div><div class="stat-card"><div class="stat-top"><span class="stat-label">Mapped Risks</span><div class="stat-icon">🔗</div></div><div class="stat-value">${mappedRisks}</div></div>`;
+  if(!list.length){document.getElementById('asset-table').innerHTML=`<tr><td colspan="8"><div class="empty"><div class="empty-icon">🏷️</div><div class="empty-text">No assets registered. Click + New Asset.</div></div></td></tr>`;document.getElementById('asset-badge').textContent=total;return;}
+  let rows='';
+  for(let a of list){
+    const riskBadges=(a.riskIds||[]).map(rid=>`<span class="asset-risk-pill">${escapeHtml(rid)}</span>`).join('')||'—';
+    rows+=`<tr><td><b>${escapeHtml(a.id)}</b></td><td>${escapeHtml(a.name)}</td><td>${escapeHtml(a.type)}</td><td><span class="badge badge-${a.criticality==='Critical'?'critical':a.criticality==='High'?'high':'medium'}">${escapeHtml(a.criticality)}</span></td><td><span class="avatar">${initials(a.owner)}</span> ${escapeHtml(a.owner.split(' ')[0])}</td><td>${escapeHtml(a.location||'—')}</td><td>${riskBadges}</td><td class="action-buttons"><button class="btn btn-ghost btn-sm" onclick="openModal('asset',data.assets.find(x=>x.id==='${a.id}'))">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteItem('assets','${a.id}')">Del</button></td></tr>`;
+  }
+  document.getElementById('asset-table').innerHTML=rows;
   document.getElementById('asset-badge').textContent=total;
 }
-function filterAssets(){
-  const q=document.getElementById('asset-search').value.toLowerCase();
-  const type=document.getElementById('asset-filter-type').value;
-  const crit=document.getElementById('asset-filter-critical').value;
-  renderAssets(data.assets.filter(a=>(!q||a.name.toLowerCase().includes(q)||a.id.toLowerCase().includes(q))&&(!type||a.type===type)&&(!crit||a.criticality===crit)));
-}
-function getRiskOptionsForAsset(){ return data.risks.map(r=>`<option value="${r.id}">${r.id} - ${r.name}</option>`).join(''); }
+function filterAssets(){const q=document.getElementById('asset-search').value.toLowerCase(),type=document.getElementById('asset-filter-type').value,crit=document.getElementById('asset-filter-critical').value;renderAssets(data.assets.filter(a=>(!q||a.name.toLowerCase().includes(q)||a.id.toLowerCase().includes(q))&&(!type||a.type===type)&&(!crit||a.criticality===crit)));}
+function getRiskOptionsForAsset(){return data.risks.map(r=>`<option value="${r.id}">${r.id} - ${r.name}</option>`).join('');}
 function openModal(type,item,idx){
   modalType=type; editId=item?.id||null; editIdx=idx!==undefined?idx:null;
   const forms={
-    asset:`<div class="form-row"><div class="form-group"><label>Asset Name *</label><input id="f-name" value="${item?.name||''}"/></div><div class="form-group"><label>Type</label><select id="f-type"><option>Hardware</option><option>Software</option><option>Data</option><option>Personnel</option><option>Facility</option><option>Cloud Service</option></select></div></div>
-           <div class="form-row"><div class="form-group"><label>Criticality</label><select id="f-crit"><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select></div><div class="form-group"><label>Owner</label><input id="f-owner" value="${item?.owner||''}"/></div></div>
-           <div class="form-row"><div class="form-group"><label>Location</label><input id="f-loc" value="${item?.location||''}"/></div><div class="form-group"><label>Linked Risks (select multiple)</label><select id="f-risks" multiple size="3">${getRiskOptionsForAsset()}</select><div class="kri-threshold">Hold Ctrl/Cmd to select multiple</div></div></div>
-           <div class="form-group"><label>Description</label><textarea id="f-desc">${item?.description||''}</textarea></div>`,
-    risk:`<div class="form-row"><div class="form-group"><label>Risk Name *</label><input id="f-name" value="${item?.name||''}"/></div><div class="form-group"><label>Category</label><select id="f-cat"><option>Operational</option><option>Financial</option><option>Strategic</option><option>Compliance</option><option>Technology</option><option>Reputational</option></select></div></div>
-          <div class="form-group"><label>Description</label><textarea id="f-desc">${item?.description||''}</textarea></div>
-          <div class="form-row"><div class="form-group"><label>Likelihood (1-5)</label><input id="f-lik" type="number" min="1" max="5" value="${item?.likelihood||3}"/></div><div class="form-group"><label>Impact (1-5)</label><input id="f-imp" type="number" min="1" max="5" value="${item?.impact||3}"/></div></div>
-          <div class="form-row"><div class="form-group"><label>Owner</label><input id="f-owner" value="${item?.owner||''}"/></div><div class="form-group"><label>Status</label><select id="f-status"><option>Open</option><option>In Progress</option><option>Closed</option></select></div></div>
-          <div class="form-group"><label>Treatment</label><select id="f-treat"><option>Mitigate</option><option>Accept</option><option>Transfer</option><option>Avoid</option></select></div>
-          <div class="form-group"><label>Affected Assets (select multiple)</label><select id="f-assets" multiple size="3">${data.assets.map(a=>`<option value="${a.id}" ${item?.assetIds?.includes(a.id)?'selected':''}>${a.id} - ${a.name}</option>`).join('')}</select><div class="kri-threshold">Link assets impacted by this risk</div></div>`,
-    // other types (control, policy, compliance, issue) remain similar but we'll copy from previous version
+    asset:`<div class="form-row"><div class="form-group"><label>Asset Name *</label><input id="f-name" value="${item?.name||''}"/></div><div class="form-group"><label>Type</label><select id="f-type"><option>Hardware</option><option>Software</option><option>Data</option><option>Personnel</option><option>Facility</option><option>Cloud Service</option></select></div></div><div class="form-row"><div class="form-group"><label>Criticality</label><select id="f-crit"><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select></div><div class="form-group"><label>Owner</label><input id="f-owner" value="${item?.owner||''}"/></div></div><div class="form-row"><div class="form-group"><label>Location</label><input id="f-loc" value="${item?.location||''}"/></div><div class="form-group"><label>Linked Risks (select multiple)</label><select id="f-risks" multiple size="3">${getRiskOptionsForAsset()}</select><div class="kri-threshold">Hold Ctrl/Cmd to select multiple</div></div></div><div class="form-group"><label>Description</label><textarea id="f-desc">${item?.description||''}</textarea></div>`,
+    risk:`<div class="form-row"><div class="form-group"><label>Risk Name *</label><input id="f-name" value="${item?.name||''}"/></div><div class="form-group"><label>Category</label><select id="f-cat"><option>Operational</option><option>Financial</option><option>Strategic</option><option>Compliance</option><option>Technology</option><option>Reputational</option></select></div></div><div class="form-group"><label>Description</label><textarea id="f-desc">${item?.description||''}</textarea></div><div class="form-row"><div class="form-group"><label>Likelihood (1-5)</label><input id="f-lik" type="number" min="1" max="5" value="${item?.likelihood||3}"/></div><div class="form-group"><label>Impact (1-5)</label><input id="f-imp" type="number" min="1" max="5" value="${item?.impact||3}"/></div></div><div class="form-row"><div class="form-group"><label>Owner</label><input id="f-owner" value="${item?.owner||''}"/></div><div class="form-group"><label>Status</label><select id="f-status"><option>Open</option><option>In Progress</option><option>Closed</option></select></div></div><div class="form-group"><label>Treatment</label><select id="f-treat"><option>Mitigate</option><option>Accept</option><option>Transfer</option><option>Avoid</option></select></div><div class="form-group"><label>Affected Assets (select multiple)</label><select id="f-assets" multiple size="3">${data.assets.map(a=>`<option value="${a.id}" ${item?.assetIds?.includes(a.id)?'selected':''}>${a.id} - ${a.name}</option>`).join('')}</select><div class="kri-threshold">Link assets impacted by this risk</div></div>`,
+    control:`<div class="form-row"><div class="form-group"><label>Control Name *</label><input id="f-name" value="${item?.name||''}"/></div><div class="form-group"><label>Type</label><select id="f-type"><option>Preventive</option><option>Detective</option><option>Corrective</option></select></div></div><div class="form-row"><div class="form-group"><label>Effectiveness (%)</label><input id="f-eff" type="number" min="0" max="100" value="${item?.effectiveness||50}"/></div><div class="form-group"><label>Owner</label><input id="f-owner" value="${item?.owner||''}"/></div></div><div class="form-row"><div class="form-group"><label>Last Tested</label><input id="f-tested" type="date" value="${item?.lastTested||''}"/></div><div class="form-group"><label>Mitigates (comma IDs)</label><input id="f-mit" value="${item?.mitigates?.join(',')||''}"/></div></div>`,
+    policy:`<div class="form-row"><div class="form-group"><label>Policy Title *</label><input id="f-name" value="${item?.title||''}"/></div><div class="form-group"><label>Category</label><select id="f-pcat"><option>Information Security</option><option>Data Privacy</option><option>Operational</option><option>HR & Conduct</option><option>Financial</option><option>IT & Technology</option></select></div></div><div class="form-group"><label>Description</label><textarea id="f-desc">${item?.description||''}</textarea></div><div class="form-row"><div class="form-group"><label>Owner</label><input id="f-owner" value="${item?.owner||''}"/></div><div class="form-group"><label>Status</label><select id="f-pstatus"><option>Active</option><option>Draft</option><option>Under Review</option><option>Expired</option></select></div></div><div class="form-row"><div class="form-group"><label>Version</label><input id="f-ver" value="${item?.version||'1.0'}"/></div><div class="form-group"><label>Review Date</label><input id="f-review" type="date" value="${item?.reviewDate||''}"/></div></div><div class="form-group"><label>Framework</label><select id="f-fw"><option>ISO 27001</option><option>SOC 2</option><option>GDPR</option><option>NIST CSF</option><option>PCI DSS</option><option>ISO 31000</option><option>ISO 22301</option><option>Other</option></select></div>`,
+    compliance:`<div class="form-row"><div class="form-group"><label>Framework</label><select id="f-fw"><option>ISO 27001</option><option>SOC 2</option><option>GDPR</option><option>NIST CSF</option><option>PCI DSS</option><option>ISO 31000</option></select></div><div class="form-group"><label>Status</label><select id="f-status"><option>Compliant</option><option>Non-Compliant</option><option>Partial</option></select></div></div><div class="form-group"><label>Requirement *</label><input id="f-req" value="${item?.requirement||''}"/></div><div class="form-row"><div class="form-group"><label>Owner</label><input id="f-owner" value="${item?.owner||''}"/></div><div class="form-group"><label>Due Date</label><input id="f-due" type="date" value="${item?.dueDate||''}"/></div></div><div class="form-group"><label>Progress (%)</label><input id="f-prog" type="number" min="0" max="100" value="${item?.progress||0}"/></div>`,
+    issue:`<div class="form-group"><label>Issue Description *</label><input id="f-iss" value="${item?.issue||''}"/></div><div class="form-row"><div class="form-group"><label>Linked Risk ID</label><input id="f-risk" value="${item?.linkedRisk||''}"/></div><div class="form-group"><label>Priority</label><select id="f-pri"><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select></div></div><div class="form-row"><div class="form-group"><label>Owner</label><input id="f-owner" value="${item?.owner||''}"/></div><div class="form-group"><label>Due Date</label><input id="f-due" type="date" value="${item?.dueDate||''}"/></div></div><div class="form-group"><label>Status</label><select id="f-st"><option>Open</option><option>In Progress</option><option>Closed</option></select></div>`
   };
-  if(type==='control') forms.control= `<div class="form-row"><div class="form-group"><label>Control Name *</label><input id="f-name" value="${item?.name||''}"/></div><div class="form-group"><label>Type</label><select id="f-type"><option>Preventive</option><option>Detective</option><option>Corrective</option></select></div></div><div class="form-row"><div class="form-group"><label>Effectiveness (%)</label><input id="f-eff" type="number" min="0" max="100" value="${item?.effectiveness||50}"/></div><div class="form-group"><label>Owner</label><input id="f-owner" value="${item?.owner||''}"/></div></div><div class="form-row"><div class="form-group"><label>Last Tested</label><input id="f-tested" type="date" value="${item?.lastTested||''}"/></div><div class="form-group"><label>Mitigates (comma IDs)</label><input id="f-mit" value="${item?.mitigates?.join(',')||''}"/></div></div>`;
-  if(type==='policy') forms.policy= `<div class="form-row"><div class="form-group"><label>Policy Title *</label><input id="f-name" value="${item?.title||''}"/></div><div class="form-group"><label>Category</label><select id="f-pcat"><option>Information Security</option><option>Data Privacy</option><option>Operational</option><option>HR & Conduct</option><option>Financial</option><option>IT & Technology</option></select></div></div><div class="form-group"><label>Description</label><textarea id="f-desc">${item?.description||''}</textarea></div><div class="form-row"><div class="form-group"><label>Owner</label><input id="f-owner" value="${item?.owner||''}"/></div><div class="form-group"><label>Status</label><select id="f-pstatus"><option>Active</option><option>Draft</option><option>Under Review</option><option>Expired</option></select></div></div><div class="form-row"><div class="form-group"><label>Version</label><input id="f-ver" value="${item?.version||'1.0'}"/></div><div class="form-group"><label>Review Date</label><input id="f-review" type="date" value="${item?.reviewDate||''}"/></div></div><div class="form-group"><label>Framework</label><select id="f-fw"><option>ISO 27001</option><option>SOC 2</option><option>GDPR</option><option>NIST CSF</option><option>PCI DSS</option><option>ISO 31000</option><option>ISO 22301</option><option>Other</option></select></div>`;
-  if(type==='compliance') forms.compliance= `<div class="form-row"><div class="form-group"><label>Framework</label><select id="f-fw"><option>ISO 27001</option><option>SOC 2</option><option>GDPR</option><option>NIST CSF</option><option>PCI DSS</option><option>ISO 31000</option></select></div><div class="form-group"><label>Status</label><select id="f-status"><option>Compliant</option><option>Non-Compliant</option><option>Partial</option></select></div></div><div class="form-group"><label>Requirement *</label><input id="f-req" value="${item?.requirement||''}"/></div><div class="form-row"><div class="form-group"><label>Owner</label><input id="f-owner" value="${item?.owner||''}"/></div><div class="form-group"><label>Due Date</label><input id="f-due" type="date" value="${item?.dueDate||''}"/></div></div><div class="form-group"><label>Progress (%)</label><input id="f-prog" type="number" min="0" max="100" value="${item?.progress||0}"/></div>`;
-  if(type==='issue') forms.issue= `<div class="form-group"><label>Issue Description *</label><input id="f-iss" value="${item?.issue||''}"/></div><div class="form-row"><div class="form-group"><label>Linked Risk ID</label><input id="f-risk" value="${item?.linkedRisk||''}"/></div><div class="form-group"><label>Priority</label><select id="f-pri"><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select></div></div><div class="form-row"><div class="form-group"><label>Owner</label><input id="f-owner" value="${item?.owner||''}"/></div><div class="form-group"><label>Due Date</label><input id="f-due" type="date" value="${item?.dueDate||''}"/></div></div><div class="form-group"><label>Status</label><select id="f-st"><option>Open</option><option>In Progress</option><option>Closed</option></select></div>`;
   document.getElementById('modal-title').innerHTML=(item?'Edit ':'Add ')+{asset:'Asset',risk:'Risk',control:'Control',policy:'Policy',compliance:'Compliance Item',issue:'Issue'}[type];
   document.getElementById('modal-body').innerHTML=forms[type];
   document.getElementById('modal').style.display='flex';
   setTimeout(()=>{
     if(item){
-      if(type==='asset'){ sv('f-type',item.type); sv('f-crit',item.criticality); sv('f-loc',item.location); if(item.riskIds) document.querySelector('#f-risks')?.querySelectorAll('option').forEach(opt=>{if(item.riskIds.includes(opt.value)) opt.selected=true;}); }
-      if(type==='risk'){ sv('f-cat',item.category); sv('f-status',item.status); sv('f-treat',item.treatment); if(item.assetIds) document.querySelector('#f-assets')?.querySelectorAll('option').forEach(opt=>{if(item.assetIds.includes(opt.value)) opt.selected=true;}); }
-      if(type==='control') sv('f-type',item.type);
-      if(type==='policy'){ sv('f-pcat',item.category); sv('f-pstatus',item.status); sv('f-fw',item.framework); }
-      if(type==='compliance'){ sv('f-fw',item.framework); sv('f-status',item.status); }
-      if(type==='issue'){ sv('f-pri',item.priority); sv('f-st',item.status); }
+      if(type==='asset'){sv('f-type',item.type);sv('f-crit',item.criticality);sv('f-loc',item.location);if(item.riskIds)document.querySelector('#f-risks')?.querySelectorAll('option').forEach(opt=>{if(item.riskIds.includes(opt.value))opt.selected=true;});}
+      if(type==='risk'){sv('f-cat',item.category);sv('f-status',item.status);sv('f-treat',item.treatment);if(item.assetIds)document.querySelector('#f-assets')?.querySelectorAll('option').forEach(opt=>{if(item.assetIds.includes(opt.value))opt.selected=true;});}
+      if(type==='control')sv('f-type',item.type);
+      if(type==='policy'){sv('f-pcat',item.category);sv('f-pstatus',item.status);sv('f-fw',item.framework);}
+      if(type==='compliance'){sv('f-fw',item.framework);sv('f-status',item.status);}
+      if(type==='issue'){sv('f-pri',item.priority);sv('f-st',item.status);}
     }
   },10);
 }
-function sv(id,val){ const el=document.getElementById(id); if(el && val) el.value=val; }
-function closeModal(){ document.getElementById('modal').style.display='none'; editId=null; editIdx=null; }
-function g(id){ return document.getElementById(id)?.value||''; }
+function sv(id,val){const el=document.getElementById(id);if(el&&val)el.value=val;}
+function closeModal(){document.getElementById('modal').style.display='none';editId=null;editIdx=null;}
+function g(id){return document.getElementById(id)?.value||'';}
 function saveModal(){
   if(modalType==='asset'){
-    const name=g('f-name'); if(!name){alert('Asset name required');return;}
+    const name=g('f-name');if(!name){alert('Asset name required');return;}
     const selectedRisks=[...document.querySelector('#f-risks')?.selectedOptions||[]].map(opt=>opt.value);
     const obj={id:editId||`AST-${String(data.assets.length+1).padStart(3,'0')}`,name,type:g('f-type'),criticality:g('f-crit'),owner:g('f-owner')||'Unassigned',location:g('f-loc'),description:g('f-desc'),riskIds:selectedRisks};
-    if(editId){ const idx=data.assets.findIndex(a=>a.id===editId); data.assets[idx]=obj; } else data.assets.push(obj);
-    // Update risk's assetIds to maintain bidirectional mapping
-    data.risks.forEach(risk=>{ if(risk.assetIds) risk.assetIds = risk.assetIds.filter(id=> data.assets.some(a=>a.id===id)); });
-    obj.riskIds.forEach(rid=>{ const r=data.risks.find(rr=>rr.id===rid); if(r && !r.assetIds?.includes(obj.id)){ if(!r.assetIds) r.assetIds=[]; r.assetIds.push(obj.id); } });
-    save(); renderAssets(); renderRisks(data.risks); toast('Asset saved');
+    if(editId){const idx=data.assets.findIndex(a=>a.id===editId);data.assets[idx]=obj;}else data.assets.push(obj);
+    data.risks.forEach(risk=>{if(risk.assetIds)risk.assetIds=risk.assetIds.filter(id=>data.assets.some(a=>a.id===id));});
+    obj.riskIds.forEach(rid=>{const r=data.risks.find(rr=>rr.id===rid);if(r&&!r.assetIds?.includes(obj.id)){if(!r.assetIds)r.assetIds=[];r.assetIds.push(obj.id);}});
+    save();renderAssets();renderRisks(data.risks);toast('Asset saved');
   } else if(modalType==='risk'){
-    const name=g('f-name'); if(!name){alert('Risk name required');return;}
+    const name=g('f-name');if(!name){alert('Risk name required');return;}
     const selectedAssets=[...document.querySelector('#f-assets')?.selectedOptions||[]].map(opt=>opt.value);
     const obj={id:editId||`RSK-${String(data.risks.length+1).padStart(3,'0')}`,name,category:g('f-cat'),description:g('f-desc'),likelihood:Math.min(5,Math.max(1,parseInt(g('f-lik'))||3)),impact:Math.min(5,Math.max(1,parseInt(g('f-imp'))||3)),owner:g('f-owner')||'Unassigned',status:g('f-status'),treatment:g('f-treat'),assetIds:selectedAssets};
-    if(editId){ const idx=data.risks.findIndex(r=>r.id===editId); data.risks[idx]=obj; } else data.risks.push(obj);
-    // Sync asset riskIds
-    data.assets.forEach(asset=>{ if(asset.riskIds) asset.riskIds = asset.riskIds.filter(id=> data.risks.some(r=>r.id===id)); });
-    obj.assetIds.forEach(aid=>{ const a=data.assets.find(ass=>ass.id===aid); if(a && !a.riskIds?.includes(obj.id)){ if(!a.riskIds) a.riskIds=[]; a.riskIds.push(obj.id); } });
-    save(); renderRisks(data.risks); renderAssets(); toast('Risk saved');
+    if(editId){const idx=data.risks.findIndex(r=>r.id===editId);data.risks[idx]=obj;}else data.risks.push(obj);
+    data.assets.forEach(asset=>{if(asset.riskIds)asset.riskIds=asset.riskIds.filter(id=>data.risks.some(r=>r.id===id));});
+    obj.assetIds.forEach(aid=>{const a=data.assets.find(ass=>ass.id===aid);if(a&&!a.riskIds?.includes(obj.id)){if(!a.riskIds)a.riskIds=[];a.riskIds.push(obj.id);}});
+    save();renderRisks(data.risks);renderAssets();toast('Risk saved');
   } else if(modalType==='control'){
-    const name=g('f-name'); if(!name)return;
+    const name=g('f-name');if(!name)return;
     const obj={id:editId||`CTL-${String(data.controls.length+1).padStart(3,'0')}`,name,type:g('f-type'),effectiveness:parseInt(g('f-eff'))||50,owner:g('f-owner')||'Unassigned',lastTested:g('f-tested')||new Date().toISOString().slice(0,10),mitigates:g('f-mit').split(',').map(s=>s.trim()).filter(Boolean)};
-    if(editId){ const i=data.controls.findIndex(c=>c.id===editId); data.controls[i]=obj; } else data.controls.push(obj);
-    save(); renderControls(); toast('Control saved');
+    if(editId){const i=data.controls.findIndex(c=>c.id===editId);data.controls[i]=obj;}else data.controls.push(obj);
+    save();renderControls();toast('Control saved');
   } else if(modalType==='policy'){
-    const name=g('f-name'); if(!name)return;
+    const name=g('f-name');if(!name)return;
     const obj={id:editId||`POL-${String(data.policies.length+1).padStart(3,'0')}`,title:name,category:g('f-pcat'),description:g('f-desc'),owner:g('f-owner')||'Unassigned',status:g('f-pstatus'),version:g('f-ver')||'1.0',reviewDate:g('f-review'),framework:g('f-fw')};
-    if(editId){ const i=data.policies.findIndex(p=>p.id===editId); data.policies[i]=obj; } else data.policies.push(obj);
-    save(); renderPolicies(data.policies); toast('Policy saved');
+    if(editId){const i=data.policies.findIndex(p=>p.id===editId);data.policies[i]=obj;}else data.policies.push(obj);
+    save();renderPolicies(data.policies);toast('Policy saved');
   } else if(modalType==='compliance'){
-    const req=g('f-req'); if(!req)return;
+    const req=g('f-req');if(!req)return;
     const obj={framework:g('f-fw'),requirement:req,status:g('f-status'),owner:g('f-owner')||'Unassigned',dueDate:g('f-due')||'',progress:parseInt(g('f-prog'))||0};
-    if(editIdx!==null) data.compliance[editIdx]=obj; else data.compliance.push(obj);
-    save(); renderCompliance(); toast('Compliance saved');
+    if(editIdx!==null)data.compliance[editIdx]=obj;else data.compliance.push(obj);
+    save();renderCompliance();toast('Compliance saved');
   } else if(modalType==='issue'){
-    const iss=g('f-iss'); if(!iss)return;
+    const iss=g('f-iss');if(!iss)return;
     const obj={id:editId||`ISS-${String(data.issues.length+1).padStart(3,'0')}`,issue:iss,linkedRisk:g('f-risk'),priority:g('f-pri'),owner:g('f-owner')||'Unassigned',dueDate:g('f-due')||'',status:g('f-st')};
-    if(editId){ const i=data.issues.findIndex(x=>x.id===editId); data.issues[i]=obj; } else data.issues.push(obj);
-    save(); renderIssues(); toast('Issue saved');
+    if(editId){const i=data.issues.findIndex(x=>x.id===editId);data.issues[i]=obj;}else data.issues.push(obj);
+    save();renderIssues();toast('Issue saved');
   }
   closeModal();
 }
 function deleteItem(type,id){
-  if(!confirm('Delete permanently?')) return;
+  if(!confirm('Delete permanently?'))return;
   if(type==='assets'){
     const asset=data.assets.find(a=>a.id===id);
-    if(asset && asset.riskIds) asset.riskIds.forEach(rid=>{ const risk=data.risks.find(r=>r.id===rid); if(risk && risk.assetIds) risk.assetIds=risk.assetIds.filter(aid=>aid!==id); });
+    if(asset&&asset.riskIds)asset.riskIds.forEach(rid=>{const risk=data.risks.find(r=>r.id===rid);if(risk&&risk.assetIds)risk.assetIds=risk.assetIds.filter(aid=>aid!==id);});
     data.assets=data.assets.filter(a=>a.id!==id);
-    save(); renderAssets(); renderRisks(data.risks);
+    save();renderAssets();renderRisks(data.risks);
   } else if(type==='risks'){
     const risk=data.risks.find(r=>r.id===id);
-    if(risk && risk.assetIds) risk.assetIds.forEach(aid=>{ const asset=data.assets.find(a=>a.id===aid); if(asset && asset.riskIds) asset.riskIds=asset.riskIds.filter(rid=>rid!==id); });
+    if(risk&&risk.assetIds)risk.assetIds.forEach(aid=>{const asset=data.assets.find(a=>a.id===aid);if(asset&&asset.riskIds)asset.riskIds=asset.riskIds.filter(rid=>rid!==id);});
     data.risks=data.risks.filter(r=>r.id!==id);
-    save(); renderRisks(data.risks); renderAssets();
-  } else if(type==='controls'){ data.controls=data.controls.filter(c=>c.id!==id); save(); renderControls(); }
-  else if(type==='policies'){ data.policies=data.policies.filter(p=>p.id!==id); save(); renderPolicies(data.policies); }
-  else if(type==='issues'){ data.issues=data.issues.filter(i=>i.id!==id); save(); renderIssues(); }
+    save();renderRisks(data.risks);renderAssets();
+  } else if(type==='controls'){data.controls=data.controls.filter(c=>c.id!==id);save();renderControls();}
+  else if(type==='policies'){data.policies=data.policies.filter(p=>p.id!==id);save();renderPolicies(data.policies);}
+  else if(type==='issues'){data.issues=data.issues.filter(i=>i.id!==id);save();renderIssues();}
   toast('Deleted');
 }
-// Existing render functions adapted to show asset links
 function renderRisks(list){
-  document.getElementById('risk-table').innerHTML=list.length?list.map(r=>`<tr><td><b>${r.id}</b></td><td>${r.name}</td><td>${r.category}</td><td><div class="risk-score" style="background:${scoreColor(sc(r))}">${sc(r)}</div></td><td><span class="badge ${sevClass(severity(sc(r)))}">${severity(sc(r))}</span></td><td><span class="avatar">${initials(r.owner)}</span>${r.owner.split(' ')[0]}</td><td><span class="badge badge-${r.status==='Open'?'open':r.status==='In Progress'?'progress':'closed'}">${r.status}</span></td><td>${(r.assetIds||[]).map(aid=>{ let a=data.assets.find(ass=>ass.id===aid); return a?`<span class="asset-risk-pill">${a.name}</span>`:''; }).join('')||'—'}</td><td><button class="btn btn-ghost" onclick="openModal('risk',r)">Edit</button> <button class="btn btn-danger" onclick="deleteItem('risks','${r.id}')">Del</button></td></tr>`).join(''):`<tr><td colspan="9"><div class="empty"><div class="empty-icon">⚠️</div><div class="empty-text">No risks found.</div></div></td></tr>`;
+  document.getElementById('risk-table').innerHTML=list.length?list.map(r=>`<tr><td><b>${escapeHtml(r.id)}</b></td><td>${escapeHtml(r.name)}</td><td>${escapeHtml(r.category)}</td><td><div class="risk-score" style="background:${scoreColor(sc(r))}">${sc(r)}</div></td><td><span class="badge ${sevClass(severity(sc(r)))}">${severity(sc(r))}</span></td><td><span class="avatar">${initials(r.owner)}</span> ${escapeHtml(r.owner.split(' ')[0])}</td><td><span class="badge badge-${r.status==='Open'?'open':r.status==='In Progress'?'progress':'closed'}">${r.status}</span></td><td>${(r.assetIds||[]).map(aid=>{let a=data.assets.find(ass=>ass.id===aid);return a?`<span class="asset-risk-pill">${escapeHtml(a.name)}</span>`:'';}).join('')||'—'}</td><td class="action-buttons"><button class="btn btn-ghost btn-sm" onclick="openModal('risk',r)">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteItem('risks','${r.id}')">Del</button></td></tr>`).join(''):`<tr><td colspan="9"><div class="empty"><div class="empty-icon">⚠️</div><div class="empty-text">No risks found.</div></div></td></tr>`;
   document.getElementById('risk-badge').textContent=data.risks.filter(r=>r.status!=='Closed').length;
 }
-function filterRisks(){
-  const q=document.getElementById('risk-search').value.toLowerCase();
-  const cat=document.getElementById('risk-filter-cat').value;
-  renderRisks(data.risks.filter(r=>(!q||r.name.toLowerCase().includes(q)||r.id.toLowerCase().includes(q))&&(!cat||r.category===cat)));
-}
+function filterRisks(){const q=document.getElementById('risk-search').value.toLowerCase(),cat=document.getElementById('risk-filter-cat').value;renderRisks(data.risks.filter(r=>(!q||r.name.toLowerCase().includes(q)||r.id.toLowerCase().includes(q))&&(!cat||r.category===cat)));}
 function renderDashboard(){
-  const open=data.risks.filter(r=>r.status!=='Closed'); const crit=open.filter(r=>severity(sc(r))==='Critical');
-  document.getElementById('stat-grid').innerHTML=`<div class="stat-card"><div class="stat-top"><span class="stat-label">Total Risks</span><div class="stat-icon" style="background:#1e1a3a">🔢</div></div><div class="stat-value" style="color:var(--purple)">${data.risks.length}</div><div class="stat-sub">${open.length} open</div></div><div class="stat-card"><div class="stat-top"><span class="stat-label">Critical Risks</span><div class="stat-icon" style="background:var(--red-bg)">🔴</div></div><div class="stat-value" style="color:var(--red)">${crit.length}</div></div><div class="stat-card"><div class="stat-top"><span class="stat-label">Total Assets</span><div class="stat-icon" style="background:var(--teal-bg)">🏷️</div></div><div class="stat-value" style="color:var(--teal)">${data.assets.length}</div><div class="stat-sub">${data.assets.filter(a=>a.criticality==='Critical').length} critical</div></div><div class="stat-card"><div class="stat-top"><span class="stat-label">Open Issues</span><div class="stat-icon" style="background:var(--blue-bg)">⚠️</div></div><div class="stat-value" style="color:var(--blue)">${data.issues.filter(i=>i.status!=='Closed').length}</div></div>`;
-  const avgEff=data.controls.length?Math.round(data.controls.reduce((a,c)=>a+c.effectiveness,0)/data.controls.length):0;
-  const compRate=data.compliance.length?Math.round(data.compliance.filter(c=>c.status==='Compliant').length/data.compliance.length*100):0;
-  document.getElementById('kri-grid').innerHTML=`<div class="kri-card"><div class="kri-title">Control effectiveness</div><div class="kri-value" style="color:${avgEff>=70?'var(--teal)':'var(--amber)'}">${avgEff}%</div><div class="progress-bar"><div class="progress-fill" style="width:${avgEff}%;background:${avgEff>=70?'var(--teal)':'var(--amber)'}"></div></div></div><div class="kri-card"><div class="kri-title">Compliance rate</div><div class="kri-value" style="color:${compRate>=80?'var(--teal)':'var(--amber)'}">${compRate}%</div><div class="progress-bar"><div class="progress-fill" style="width:${compRate}%;background:${compRate>=80?'var(--teal)':'var(--amber)'}"></div></div></div><div class="kri-card"><div class="kri-title">Assets at risk</div><div class="kri-value" style="color:var(--purple)">${data.assets.filter(a=>a.riskIds?.length>0).length}</div><div class="kri-threshold">Mapped to risks</div></div>`;
+  const open=data.risks.filter(r=>r.status!=='Closed'),crit=open.filter(r=>severity(sc(r))==='Critical');
+  document.getElementById('stat-grid').innerHTML=`<div class="stat-card"><div class="stat-top"><span class="stat-label">Total Risks</span></div><div class="stat-value">${data.risks.length}</div><div class="stat-sub">${open.length} open</div></div><div class="stat-card"><div class="stat-top"><span class="stat-label">Critical Risks</span></div><div class="stat-value">${crit.length}</div></div><div class="stat-card"><div class="stat-top"><span class="stat-label">Total Assets</span></div><div class="stat-value">${data.assets.length}</div><div class="stat-sub">${data.assets.filter(a=>a.criticality==='Critical').length} critical</div></div><div class="stat-card"><div class="stat-top"><span class="stat-label">Open Issues</span></div><div class="stat-value">${data.issues.filter(i=>i.status!=='Closed').length}</div></div>`;
+  const avgEff=data.controls.length?Math.round(data.controls.reduce((a,c)=>a+c.effectiveness,0)/data.controls.length):0,compRate=data.compliance.length?Math.round(data.compliance.filter(c=>c.status==='Compliant').length/data.compliance.length*100):0;
+  document.getElementById('kri-grid').innerHTML=`<div class="kri-card"><div class="kri-title">Control effectiveness</div><div class="kri-value">${avgEff}%</div><div class="progress-bar"><div class="progress-fill" style="width:${avgEff}%;background:${avgEff>=70?'var(--teal)':'var(--amber)'}"></div></div></div><div class="kri-card"><div class="kri-title">Compliance rate</div><div class="kri-value">${compRate}%</div><div class="progress-bar"><div class="progress-fill" style="width:${compRate}%;background:${compRate>=80?'var(--teal)':'var(--amber)'}"></div></div></div><div class="kri-card"><div class="kri-title">Assets at risk</div><div class="kri-value">${data.assets.filter(a=>a.riskIds?.length>0).length}</div></div>`;
   const top=[...data.risks].sort((a,b)=>sc(b)-sc(a)).slice(0,5);
   document.getElementById('top-risks-table').innerHTML=top.map(r=>`<tr><td><b>${r.id}</b> ${r.name}</td><td>${r.category}</td><td><div class="risk-score" style="background:${scoreColor(sc(r))}">${sc(r)}</div></td><td><span class="badge ${sevClass(severity(sc(r)))}">${severity(sc(r))}</span></td><td><span class="avatar">${initials(r.owner)}</span>${r.owner.split(' ')[0]}</td><td><span class="badge badge-${r.status==='Open'?'open':r.status==='In Progress'?'progress':'closed'}">${r.status}</span></td></tr>`).join('');
 }
-// Stubs for other pages (heatmap, controls, policies, compliance, issues, email) – they are unchanged from original but need to be present. I'll include minimal versions that call existing functions.
-function renderHeatmap(){ /* same as original but we keep asset context */ const labels=['Very Low','Low','Medium','High','Very High']; let html=''; for(let imp=5;imp>=1;imp--){ html+=`<div class="hm-label" style="font-size:9px;text-align:right;padding-right:4px">${labels[imp-1]}</div>`; for(let lik=1;lik<=5;lik++){ const s=lik*imp,sev=severity(s),risks=data.risks.filter(r=>r.likelihood===lik&&r.impact===imp); const cls=sev==='Critical'?'hm-critical':sev==='High'?'hm-high':sev==='Medium'?'hm-medium':'hm-low'; html+=`<div class="hm-cell ${cls}" onclick="showHeatmapRisks(${lik},${imp})" title="L${lik}xI${imp}=${s}">${risks.length||''}</div>`; } } html+='<div></div>'; labels.forEach(l=>html+=`<div class="hm-label" style="font-size:9px;text-align:center">${l}</div>`); document.getElementById('heatmap-container').innerHTML=`<div class="heatmap-grid">${html}</div>`; }
-function showHeatmapRisks(lik,imp){ const risks=data.risks.filter(r=>r.likelihood===lik&&r.impact===imp); const sec=document.getElementById('heatmap-risks-section'); if(!risks.length){ sec.style.display='none'; return; } document.getElementById('heatmap-risks-title').textContent=`Risks at L${lik}xI${imp} (${risks.length})`; document.getElementById('heatmap-risks-table').innerHTML=risks.map(r=>`<tr><td><b>${r.id}</b></td><td>${r.name}</td><td>${r.owner}</td><td><span class="badge badge-${r.status==='Open'?'open':r.status==='In Progress'?'progress':'closed'}">${r.status}</span></td></tr>`).join(''); sec.style.display='block'; }
-function renderControls(){ const eff=e=>e>=70?'effective':e>=40?'partial':'ineffective'; const counts={effective:0,partial:0,ineffective:0}; data.controls.forEach(c=>counts[eff(c.effectiveness)]++); document.getElementById('control-stats').innerHTML=`<div class="stat-card"><div class="stat-top"><span class="stat-label">Effective</span><div class="stat-icon" style="background:var(--teal-bg)">✅</div></div><div class="stat-value">${counts.effective}</div></div><div class="stat-card"><div class="stat-top"><span class="stat-label">Partial</span><div class="stat-icon" style="background:var(--amber-bg)">⚠️</div></div><div class="stat-value">${counts.partial}</div></div><div class="stat-card"><div class="stat-top"><span class="stat-label">Ineffective</span><div class="stat-icon" style="background:var(--red-bg)">❌</div></div><div class="stat-value">${counts.ineffective}</div></div></div>`; document.getElementById('controls-table').innerHTML=data.controls.map(c=>`<tr><td><b>${c.id}</b></td><td>${c.name}</td><td>${c.type}</td><td>${c.effectiveness}%</td><td>${c.owner}</td><td>${c.lastTested}</td><td>${c.mitigates.join(', ')}</td><td><button class="btn btn-ghost" onclick="openModal('control',c)">Edit</button> <button class="btn btn-danger" onclick="deleteItem('controls','${c.id}')">Del</button></td></tr>`).join(''); }
-function renderPolicies(list){ list=list||data.policies; document.getElementById('policy-grid').innerHTML=list.map(p=>`<div class="policy-card"><div>${p.title}</div><div>${p.status}</div><div>Owner: ${p.owner}</div><div>Review: ${p.reviewDate}</div><button class="btn btn-ghost" onclick="openModal('policy',p)">Edit</button></div>`).join(''); }
-function renderCompliance(){ document.getElementById('compliance-table').innerHTML=data.compliance.map((c,i)=>`<tr><td>${c.framework}</td><td>${c.requirement}</td><td>${c.status}</td><td>${c.owner}</td><td>${c.dueDate}</td><td>${c.progress}%</td><td><button class="btn btn-ghost" onclick="openModal('compliance',c,${i})">Edit</button></td></tr>`).join(''); }
-function renderIssues(){ document.getElementById('issues-table').innerHTML=data.issues.map(iss=>`<tr><td>${iss.id}</td><td>${iss.issue}</td><td>${iss.linkedRisk}</td><td>${iss.priority}</td><td>${iss.owner}</td><td>${iss.dueDate}</td><td>${iss.status}</td><td><button class="btn btn-ghost" onclick="openModal('issue',iss)">Edit</button> <button class="btn btn-danger" onclick="deleteItem('issues','${iss.id}')">Del</button></td></tr>`).join(''); }
-function renderEmail(){ /* unchanged from original but keep config */ const c=data.emailConfig; if(c.pubKey)document.getElementById('ejs-pubkey').value=c.pubKey; if(c.serviceId)document.getElementById('ejs-service').value=c.serviceId; if(c.templateId)document.getElementById('ejs-template').value=c.templateId; if(c.email)document.getElementById('ejs-email').value=c.email; const p=data.alertPrefs; document.getElementById('alert-critical').checked=p.critical; document.getElementById('alert-high').checked=p.high; document.getElementById('alert-overdue').checked=p.overdue; document.getElementById('alert-policy').checked=p.policy; document.getElementById('alert-compliance').checked=p.compliance; }
-function saveEmailConfig(){ data.emailConfig={pubKey:document.getElementById('ejs-pubkey').value,serviceId:document.getElementById('ejs-service').value,templateId:document.getElementById('ejs-template').value,email:document.getElementById('ejs-email').value}; save(); toast('Email config saved'); }
-function saveAlertPrefs(){ data.alertPrefs={critical:document.getElementById('alert-critical').checked,high:document.getElementById('alert-high').checked,overdue:document.getElementById('alert-overdue').checked,policy:document.getElementById('alert-policy').checked,compliance:document.getElementById('alert-compliance').checked}; save(); toast('Preferences saved'); }
-function testEmail(){ const c=data.emailConfig; if(!c.pubKey||!c.serviceId||!c.templateId||!c.email){toast('Fill all EmailJS fields','warn');return;} emailjs.init(c.pubKey); emailjs.send(c.serviceId,c.templateId,{to_email:c.email,subject:'GRC-Control Test',message:'Asset+Risk integrated alert'}).then(()=>toast('Test email sent')).catch(e=>toast('Failed: '+e.text,'error')); }
-function exportCSV(){ const rows=[['ID','Risk','Category','Score','Severity','Status','Affected Assets'],...data.risks.map(r=>[r.id,r.name,r.category,sc(r),severity(sc(r)),r.status,(r.assetIds||[]).map(aid=>data.assets.find(a=>a.id===aid)?.name||'').join(';')])]; const csv=rows.map(r=>r.map(c=>`"${c}"`).join(',')).join('\n'); const a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv); a.download='grc_assets_risks.csv'; a.click(); toast('CSV exported'); }
-
-// Initialize
+function renderHeatmap(){const labels=['Very Low','Low','Medium','High','Very High'];let html='';for(let imp=5;imp>=1;imp--){html+=`<div class="hm-label">${labels[imp-1]}</div>`;for(let lik=1;lik<=5;lik++){const s=lik*imp,sev=severity(s),risks=data.risks.filter(r=>r.likelihood===lik&&r.impact===imp);const cls=sev==='Critical'?'hm-critical':sev==='High'?'hm-high':sev==='Medium'?'hm-medium':'hm-low';html+=`<div class="hm-cell ${cls}" onclick="showHeatmapRisks(${lik},${imp})">${risks.length||''}</div>`;}}html+='<div></div>';labels.forEach(l=>html+=`<div class="hm-label">${l}</div>`);document.getElementById('heatmap-container').innerHTML=`<div class="heatmap-grid">${html}</div>`;}
+function showHeatmapRisks(lik,imp){const risks=data.risks.filter(r=>r.likelihood===lik&&r.impact===imp);const sec=document.getElementById('heatmap-risks-section');if(!risks.length){sec.style.display='none';return;}document.getElementById('heatmap-risks-title').textContent=`Risks at L${lik}xI${imp} (${risks.length})`;document.getElementById('heatmap-risks-table').innerHTML=risks.map(r=>`<tr><td><b>${r.id}</b></td><td>${r.name}</td><td>${r.owner}</td><td><span class="badge badge-${r.status==='Open'?'open':r.status==='In Progress'?'progress':'closed'}">${r.status}</span></td></tr>`).join('');sec.style.display='block';}
+function renderControls(){const eff=e=>e>=70?'effective':e>=40?'partial':'ineffective';const counts={effective:0,partial:0,ineffective:0};data.controls.forEach(c=>counts[eff(c.effectiveness)]++);document.getElementById('control-stats').innerHTML=`<div class="stat-card"><div class="stat-top"><span class="stat-label">Effective</span></div><div class="stat-value">${counts.effective}</div></div><div class="stat-card"><div class="stat-top"><span class="stat-label">Partial</span></div><div class="stat-value">${counts.partial}</div></div><div class="stat-card"><div class="stat-top"><span class="stat-label">Ineffective</span></div><div class="stat-value">${counts.ineffective}</div></div></div>`;document.getElementById('controls-table').innerHTML=data.controls.map(c=>`<tr><td><b>${c.id}</b></td><td>${c.name}</td><td>${c.type}</td><td>${c.effectiveness}%</td><td>${c.owner}</td><td>${c.lastTested}</td><td>${c.mitigates.join(', ')}</td><td class="action-buttons"><button class="btn btn-ghost btn-sm" onclick="openModal('control',c)">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteItem('controls','${c.id}')">Del</button></td></tr>`).join('');}
+function renderPolicies(list){list=list||data.policies;document.getElementById('policy-stats').innerHTML=`<div class="stat-card"><div class="stat-top"><span class="stat-label">Active</span></div><div class="stat-value">${list.filter(p=>p.status==='Active').length}</div></div><div class="stat-card"><div class="stat-top"><span class="stat-label">Draft</span></div><div class="stat-value">${list.filter(p=>p.status==='Draft').length}</div></div><div class="stat-card"><div class="stat-top"><span class="stat-label">Under Review</span></div><div class="stat-value">${list.filter(p=>p.status==='Under Review').length}</div></div></div>`;document.getElementById('policy-grid').innerHTML=list.map(p=>`<div class="policy-card"><div class="policy-card-top"><div class="policy-card-title">${p.title}</div><span class="badge badge-${p.status==='Active'?'active':p.status==='Draft'?'draft':'review'}">${p.status}</span></div><div class="policy-card-meta"><b>ID:</b> ${p.id} &nbsp;·&nbsp; <b>v${p.version}</b><br/><b>Owner:</b> ${p.owner}<br/><b>Review:</b> ${p.reviewDate||'—'}</div><div>${p.description}</div><div class="policy-card-actions"><button class="btn btn-ghost btn-sm" onclick="openModal('policy',p)">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteItem('policies','${p.id}')">Delete</button></div></div>`).join('');}
+function filterPolicies(){const q=document.getElementById('policy-search').value.toLowerCase(),st=document.getElementById('policy-filter-status').value,cat=document.getElementById('policy-filter-cat').value;renderPolicies(data.policies.filter(p=>(!q||p.title.toLowerCase().includes(q)||p.id.toLowerCase().includes(q))&&(!st||p.status===st)&&(!cat||p.category===cat)));}
+function renderCompliance(){document.getElementById('compliance-table').innerHTML=data.compliance.map((c,i)=>`<tr><td><b>${c.framework}</b></td><td>${c.requirement}</td><td><span class="badge badge-${c.status==='Compliant'?'compliant':c.status==='Non-Compliant'?'noncompliant':'partial-c'}">${c.status}</span></td><td>${c.owner}</td><td>${c.dueDate}</td><td><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${c.progress}%;background:${c.progress>=80?'var(--teal)':c.progress>=50?'var(--amber)':'var(--red)'}"></div></div><span>${c.progress}%</span></div></td><td class="action-buttons"><button class="btn btn-ghost btn-sm" onclick="openModal('compliance',c,${i})">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteCompliance(${i})">Del</button></td></tr>`).join('');}
+function deleteCompliance(i){if(!confirm('Delete?'))return;data.compliance.splice(i,1);save();renderCompliance();toast('Deleted');}
+function renderIssues(){document.getElementById('issues-table').innerHTML=data.issues.map(iss=>`<tr><td><b>${iss.id}</b></td><td>${iss.issue}</td><td>${iss.linkedRisk}</td><td><span class="badge badge-${iss.priority.toLowerCase()}">${iss.priority}</span></td><td>${iss.owner}</td><td>${iss.dueDate}</td><td><span class="badge badge-${iss.status==='Open'?'open':iss.status==='In Progress'?'progress':'closed'}">${iss.status}</span></td><td class="action-buttons"><button class="btn btn-ghost btn-sm" onclick="openModal('issue',iss)">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteItem('issues','${iss.id}')">Del</button></td></tr>`).join('');}
+function renderEmail(){const c=data.emailConfig;if(c.pubKey)document.getElementById('ejs-pubkey').value=c.pubKey;if(c.serviceId)document.getElementById('ejs-service').value=c.serviceId;if(c.templateId)document.getElementById('ejs-template').value=c.templateId;if(c.email)document.getElementById('ejs-email').value=c.email;const p=data.alertPrefs;document.getElementById('alert-critical').checked=p.critical;document.getElementById('alert-high').checked=p.high;document.getElementById('alert-overdue').checked=p.overdue;document.getElementById('alert-policy').checked=p.policy;document.getElementById('alert-compliance').checked=p.compliance;}
+function saveEmailConfig(){data.emailConfig={pubKey:document.getElementById('ejs-pubkey').value,serviceId:document.getElementById('ejs-service').value,templateId:document.getElementById('ejs-template').value,email:document.getElementById('ejs-email').value};save();toast('Email config saved');}
+function saveAlertPrefs(){data.alertPrefs={critical:document.getElementById('alert-critical').checked,high:document.getElementById('alert-high').checked,overdue:document.getElementById('alert-overdue').checked,policy:document.getElementById('alert-policy').checked,compliance:document.getElementById('alert-compliance').checked};save();toast('Preferences saved');}
+function testEmail(){const c=data.emailConfig;if(!c.pubKey||!c.serviceId||!c.templateId||!c.email){toast('Fill all EmailJS fields','warn');return;}emailjs.init(c.pubKey);emailjs.send(c.serviceId,c.templateId,{to_email:c.email,subject:'GRC-Control Test',message:'Asset+Risk integrated alert'}).then(()=>toast('Test email sent')).catch(e=>toast('Failed: '+e.text,'error'));}
+function exportCSV(){const rows=[['ID','Risk','Category','Score','Severity','Status','Affected Assets'],...data.risks.map(r=>[r.id,r.name,r.category,sc(r),severity(sc(r)),r.status,(r.assetIds||[]).map(aid=>data.assets.find(a=>a.id===aid)?.name||'').join(';')])];const csv=rows.map(r=>r.map(c=>`"${c}"`).join(',')).join('\n');const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='grc_assets_risks.csv';a.click();toast('CSV exported');}
 renderDashboard();
 </script>
 </body>
