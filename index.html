@@ -1,925 +1,309 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enterprise GRC Platform – All Modules</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', system-ui; background: #0a0c12; color: #e2e8f0; display: flex; }
-        .sidebar { width: 280px; background: #11161f; border-right: 1px solid #2d3748; min-height: 100vh; position: fixed; overflow-y: auto; }
-        .logo { padding: 20px; font-size: 20px; font-weight: bold; color: #7c6af7; }
-        .nav { padding: 16px; }
-        .nav-item { display: block; width: 100%; padding: 10px; background: none; border: none; color: #94a3b8; text-align: left; border-radius: 8px; cursor: pointer; margin-bottom: 4px; }
-        .nav-item:hover { background: #1a202c; color: white; }
-        .nav-item.active { background: #7c6af7; color: white; }
-        .main { margin-left: 280px; flex: 1; min-height: 100vh; }
-        .topbar { padding: 16px 24px; background: #11161f; border-bottom: 1px solid #2d3748; display: flex; justify-content: space-between; align-items: center; }
-        .topbar-title { font-size: 20px; font-weight: 600; }
-        .content { padding: 24px; }
-        .btn { background: #7c6af7; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; }
-        .btn-outline { background: transparent; border: 1px solid #4a5568; color: #cbd5e1; }
-        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
-        .stat-card { background: #11161f; border: 1px solid #2d3748; border-radius: 12px; padding: 16px; }
-        .stat-value { font-size: 28px; font-weight: 700; color: #7c6af7; }
-        table { width: 100%; border-collapse: collapse; margin-top: 16px; }
-        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #2d3748; }
-        .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-        .badge-critical { background: #ef444420; color: #ef4444; }
-        .badge-high { background: #f59e0b20; color: #f59e0b; }
-        .badge-medium { background: #3b82f620; color: #60a5fa; }
-        .badge-low { background: #10b98120; color: #10b981; }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .modal { background: #1a202c; border-radius: 16px; width: 600px; max-width: 90%; padding: 20px; max-height: 80vh; overflow-y: auto; }
-        .form-group { margin-bottom: 15px; }
-        input, select, textarea { width: 100%; background: #0f1117; border: 1px solid #2d3748; padding: 8px; border-radius: 6px; color: white; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .hidden { display: none; }
-        .toast { position: fixed; bottom: 20px; right: 20px; background: #1e293b; padding: 12px 20px; border-radius: 8px; z-index: 1100; }
-        #loginOverlay { position: fixed; inset: 0; background: #0a0c12; display: flex; align-items: center; justify-content: center; z-index: 2000; }
-        .login-card { background: #11161f; border-radius: 16px; padding: 32px; width: 350px; text-align: center; }
-        .login-card input { margin: 16px 0; width: 100%; }
-        .error-msg { color: #ef4444; margin-top: 8px; }
-        .table-container { overflow-x: auto; }
-        @media (max-width: 768px) { .sidebar { width: 220px; } .main { margin-left: 220px; } }
-    </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>GRC-Control — Risk Management</title>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#0f1117;--bg2:#161b27;--bg3:#1e2535;--bg4:#252d40;
+--border:#2a3352;--border2:#3a4a6b;
+--text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+--purple:#7c6af7;--purple2:#6355e0;--purple-bg:#1e1a3a;
+--teal:#10b981;--teal-bg:#0d2d22;
+--amber:#f59e0b;--amber-bg:#2d1f07;
+--red:#ef4444;--red-bg:#2d0f0f;
+--blue:#3b82f6;--blue-bg:#0f1f3a;
+--green:#22c55e;--green-bg:#0d2d1a;
+--radius:10px;--radius-sm:6px;
+--font:'Inter',system-ui,sans-serif;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex}
+.sidebar{width:220px;min-height:100vh;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;position:fixed;top:0;left:0;height:100vh;overflow-y:auto}
+.logo{padding:20px 16px 16px;border-bottom:1px solid var(--border)}
+.logo-mark{display:flex;align-items:center;gap:10px}
+.logo-icon{width:34px;height:34px;background:var(--purple-bg);border:1px solid var(--purple);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.logo-text{font-size:15px;font-weight:600;color:var(--text)}
+.logo-sub{font-size:11px;color:var(--text3);margin-top:1px}
+.nav{padding:12px 8px;flex:1}
+.nav-section{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;padding:10px 8px 6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--radius-sm);cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;transition:all .15s;margin-bottom:2px;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--purple-bg);color:var(--purple);border:1px solid rgba(124,106,247,.2)}
+.nav-item svg{width:16px;height:16px;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:600;padding:1px 6px;border-radius:10px}
+.main{margin-left:220px;flex:1;min-height:100vh;display:flex;flex-direction:column}
+.topbar{padding:16px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg2)}
+.topbar-title{font-size:18px;font-weight:600}
+.topbar-sub{font-size:12px;color:var(--text3);margin-top:2px}
+.topbar-actions{display:flex;gap:8px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s}
+.btn-primary{background:var(--purple);color:#fff}
+.btn-primary:hover{background:var(--purple2)}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--bg3);color:var(--text)}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1px solid rgba(239,68,68,.2)}
+.btn-danger:hover{background:rgba(239,68,68,.15)}
+.btn-teal{background:var(--teal-bg);color:var(--teal);border:1px solid rgba(16,185,129,.2)}
+.btn-teal:hover{background:rgba(16,185,129,.15)}
+.content{padding:24px 28px;flex:1}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px}
+.stat-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.stat-label{font-size:12px;color:var(--text3);font-weight:500}
+.stat-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px}
+.stat-value{font-size:26px;font-weight:700;line-height:1}
+.stat-sub{font-size:11px;color:var(--text3);margin-top:4px}
+.section-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:20px;overflow:hidden}
+.section-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.section-title{font-size:14px;font-weight:600}
+.section-sub{font-size:12px;color:var(--text3)}
+table{width:100%;border-collapse:collapse}
+th{padding:10px 16px;text-align:left;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border)}
+td{padding:12px 16px;font-size:13px;border-bottom:1px solid rgba(42,51,82,.5)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-critical{background:rgba(239,68,68,.15);color:#f87171}
+.badge-high{background:rgba(245,158,11,.15);color:#fbbf24}
+.badge-medium{background:rgba(59,130,246,.15);color:#60a5fa}
+.badge-low{background:rgba(34,197,94,.15);color:#4ade80}
+.badge-open{background:rgba(239,68,68,.12);color:#f87171}
+.badge-progress{background:rgba(245,158,11,.12);color:#fbbf24}
+.badge-closed{background:rgba(34,197,94,.12);color:#4ade80}
+.badge-effective{background:rgba(34,197,94,.12);color:#4ade80}
+.badge-partial{background:rgba(245,158,11,.12);color:#fbbf24}
+.badge-ineffective{background:rgba(239,68,68,.12);color:#f87171}
+.badge-compliant{background:rgba(34,197,94,.12);color:#4ade80}
+.badge-noncompliant{background:rgba(239,68,68,.12);color:#f87171}
+.badge-partial-c{background:rgba(245,158,11,.12);color:#fbbf24}
+.badge-active{background:rgba(34,197,94,.12);color:#4ade80}
+.badge-draft{background:rgba(100,116,139,.12);color:#94a3b8}
+.badge-review{background:rgba(245,158,11,.12);color:#fbbf24}
+.badge-expired{background:rgba(239,68,68,.12);color:#f87171}
+.progress-wrap{display:flex;align-items:center;gap:8px}
+.progress-bar{flex:1;height:5px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;transition:width .3s}
+.heatmap-wrap{padding:20px}
+.heatmap-grid{display:grid;grid-template-columns:30px repeat(5,1fr);grid-template-rows:repeat(5,44px) 30px;gap:4px}
+.hm-cell{border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;position:relative}
+.hm-cell:hover{transform:scale(1.05);z-index:2}
+.hm-label{font-size:10px;color:var(--text3);display:flex;align-items:center;justify-content:center}
+.hm-low{background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.2)}
+.hm-medium{background:rgba(59,130,246,.15);color:#60a5fa;border:1px solid rgba(59,130,246,.2)}
+.hm-high{background:rgba(245,158,11,.18);color:#fbbf24;border:1px solid rgba(245,158,11,.25)}
+.hm-critical{background:rgba(239,68,68,.18);color:#f87171;border:1px solid rgba(239,68,68,.25)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto}
+.modal-header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:15px;font-weight:600}
+.modal-body{padding:20px}
+.modal-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+.form-group{margin-bottom:16px}
+label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:5px}
+input,select,textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;font-size:13px;color:var(--text);font-family:var(--font);outline:none;transition:border-color .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--purple)}
+textarea{resize:vertical;min-height:80px}
+select option{background:var(--bg3)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.page{display:none}
+.page.active{display:block}
+.actions-bar{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.search-input{flex:1;min-width:180px;max-width:280px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 12px;font-size:13px;color:var(--text);outline:none}
+.search-input:focus{border-color:var(--purple)}
+.risk-score{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;font-size:12px;font-weight:700}
+.avatar{width:26px;height:26px;border-radius:50%;background:var(--purple-bg);border:1px solid var(--purple);display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--purple);margin-right:6px}
+.kri-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+.kri-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.kri-title{font-size:12px;color:var(--text3);margin-bottom:6px}
+.kri-value{font-size:22px;font-weight:700}
+.kri-bar-wrap{margin-top:8px}
+.kri-threshold{font-size:10px;color:var(--text3);margin-top:3px}
+.empty{padding:48px 20px;text-align:center;color:var(--text3)}
+.empty-icon{font-size:36px;margin-bottom:12px}
+.empty-text{font-size:14px}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:12px 18px;font-size:13px;color:var(--text);z-index:200;display:flex;align-items:center;gap:10px;transform:translateY(80px);opacity:0;transition:all .3s;max-width:320px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.policy-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.policy-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:16px;position:relative}
+.policy-card:hover{border-color:var(--border2)}
+.policy-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+.policy-card-title{font-size:14px;font-weight:600;flex:1;margin-right:8px}
+.policy-card-meta{font-size:11px;color:var(--text3);margin-bottom:10px;line-height:1.6}
+.policy-card-actions{display:flex;gap:6px;margin-top:12px}
+.settings-panel{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+.settings-title{font-size:14px;font-weight:600;margin-bottom:4px}
+.settings-sub{font-size:12px;color:var(--text3);margin-bottom:16px}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-label{font-size:13px}
+.toggle-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.toggle{position:relative;width:38px;height:20px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--bg4);border-radius:20px;cursor:pointer;transition:.2s}
+.toggle-slider:before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:var(--text3);border-radius:50%;transition:.2s}
+.toggle input:checked+.toggle-slider{background:var(--purple)}
+.toggle input:checked+.toggle-slider:before{transform:translateX(18px);background:#fff}
+.info-box{background:var(--blue-bg);border:1px solid rgba(59,130,246,.2);border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.6}
+.info-box a{color:var(--blue)}
+.warn-box{background:var(--amber-bg);border:1px solid rgba(245,158,11,.2);border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.6}
+@media(max-width:900px){.stat-grid{grid-template-columns:repeat(2,1fr)}.kri-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
 </head>
 <body>
-<div id="loginOverlay">
-    <div class="login-card">
-        <h2>🔐 GRC Enterprise</h2>
-        <p style="margin:16px 0">Enter password</p>
-        <input type="password" id="passwordInput" placeholder="Password" autofocus>
-        <button class="btn" id="loginBtn" style="width:100%">Login</button>
-        <div id="loginError" class="error-msg"></div>
+<nav class="sidebar">
+  <div class="logo">
+    <div class="logo-mark">
+      <div class="logo-icon">🛡️</div>
+      <div><div class="logo-text">GRC-Control</div><div class="logo-sub">Risk Management</div></div>
     </div>
+  </div>
+  <div class="nav">
+    <div class="nav-section">Workspace</div>
+    <button class="nav-item active" onclick="showPage('dashboard',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</button>
+    <button class="nav-item" onclick="showPage('risks',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>Risk Register<span class="nav-badge" id="risk-badge">0</span></button>
+    <button class="nav-item" onclick="showPage('heatmap',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg>Heat Map</button>
+    <button class="nav-item" onclick="showPage('controls',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Controls</button>
+    <button class="nav-item" onclick="showPage('policies',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Policies</button>
+    <button class="nav-item" onclick="showPage('compliance',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Compliance</button>
+    <button class="nav-item" onclick="showPage('issues',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Issues & Actions</button>
+    <div class="nav-section">Settings</div>
+    <button class="nav-item" onclick="showPage('email',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Email Alerts</button>
+    <button class="nav-item" onclick="exportCSV()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export CSV</button>
+  </div>
+</nav>
+<div class="main">
+<div class="page active" id="page-dashboard">
+  <div class="topbar"><div><div class="topbar-title">Dashboard</div><div class="topbar-sub">Risk overview and key indicators</div></div></div>
+  <div class="content"><div class="stat-grid" id="stat-grid"></div><div class="kri-grid" id="kri-grid"></div>
+    <div class="section-card"><div class="section-header"><span class="section-title">Top risks requiring attention</span></div>
+    <table><thead><tr><th>Risk</th><th>Category</th><th>Score</th><th>Severity</th><th>Owner</th><th>Status</th></tr></thead><tbody id="top-risks-table"></tbody></table></div>
+  </div>
 </div>
-<div id="grcApp" style="display:none">
-    <div class="sidebar">
-        <div class="logo">🎯 GRC Enterprise</div>
-        <div class="nav" id="navContainer"></div>
+<div class="page" id="page-risks">
+  <div class="topbar"><div><div class="topbar-title">Risk Register</div><div class="topbar-sub">Identify and track all organizational risks</div></div><button class="btn btn-primary" onclick="openModal('risk')">+ New Risk</button></div>
+  <div class="content">
+    <div class="actions-bar">
+      <input class="search-input" type="text" placeholder="Search risks…" oninput="filterRisks()" id="risk-search"/>
+      <select class="btn btn-ghost" style="padding:7px 12px" onchange="filterRisks()" id="risk-filter-cat"><option value="">All categories</option><option>Operational</option><option>Financial</option><option>Strategic</option><option>Compliance</option><option>Technology</option><option>Reputational</option></select>
+      <select class="btn btn-ghost" style="padding:7px 12px" onchange="filterRisks()" id="risk-filter-sev"><option value="">All severities</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select>
     </div>
-    <div class="main" id="mainContent"></div>
+    <div class="section-card"><table><thead><tr><th>ID</th><th>Risk</th><th>Category</th><th>Likelihood</th><th>Impact</th><th>Score</th><th>Severity</th><th>Owner</th><th>Status</th><th>Actions</th></tr></thead><tbody id="risk-table"></tbody></table></div>
+  </div>
 </div>
-<div id="modal" class="modal-overlay hidden">
-    <div class="modal">
-        <div id="modalBody"></div>
-        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:20px">
-            <button class="btn-outline" onclick="closeModal()">Cancel</button>
-            <button class="btn" onclick="saveModal()">Save</button>
-        </div>
+<div class="page" id="page-heatmap">
+  <div class="topbar"><div><div class="topbar-title">Risk Heat Map</div><div class="topbar-sub">Likelihood vs Impact matrix</div></div></div>
+  <div class="content">
+    <div class="section-card"><div class="section-header"><span class="section-title">5×5 Risk Matrix</span><span class="section-sub">Click a cell to view risks</span></div><div class="heatmap-wrap" id="heatmap-container"></div></div>
+    <div class="section-card" id="heatmap-risks-section" style="display:none"><div class="section-header"><span class="section-title" id="heatmap-risks-title">Risks in selected zone</span></div><table><thead><tr><th>ID</th><th>Risk</th><th>Owner</th><th>Status</th></tr></thead><tbody id="heatmap-risks-table"></tbody></table></div>
+  </div>
+</div>
+<div class="page" id="page-controls">
+  <div class="topbar"><div><div class="topbar-title">Controls & Mitigation</div><div class="topbar-sub">Track control effectiveness and risk treatment</div></div><button class="btn btn-primary" onclick="openModal('control')">+ New Control</button></div>
+  <div class="content"><div class="stat-grid" id="control-stats"></div><div class="section-card"><table><thead><tr><th>ID</th><th>Control</th><th>Type</th><th>Effectiveness</th><th>Owner</th><th>Last Tested</th><th>Mitigates</th><th>Actions</th></tr></thead><tbody id="controls-table"></tbody></table></div></div>
+</div>
+<div class="page" id="page-policies">
+  <div class="topbar"><div><div class="topbar-title">Policies</div><div class="topbar-sub">Manage organizational policies and procedures</div></div><button class="btn btn-primary" onclick="openModal('policy')">+ New Policy</button></div>
+  <div class="content">
+    <div class="stat-grid" id="policy-stats"></div>
+    <div class="actions-bar">
+      <input class="search-input" type="text" placeholder="Search policies…" oninput="filterPolicies()" id="policy-search"/>
+      <select class="btn btn-ghost" style="padding:7px 12px" onchange="filterPolicies()" id="policy-filter-status"><option value="">All statuses</option><option>Active</option><option>Draft</option><option>Under Review</option><option>Expired</option></select>
+      <select class="btn btn-ghost" style="padding:7px 12px" onchange="filterPolicies()" id="policy-filter-cat"><option value="">All categories</option><option>Information Security</option><option>Data Privacy</option><option>Operational</option><option>HR & Conduct</option><option>Financial</option><option>IT & Technology</option></select>
     </div>
+    <div class="policy-grid" id="policy-grid"></div>
+  </div>
 </div>
-<div id="toast" class="toast hidden"></div>
-
+<div class="page" id="page-compliance">
+  <div class="topbar"><div><div class="topbar-title">Compliance</div><div class="topbar-sub">Framework and regulatory compliance tracking</div></div><button class="btn btn-primary" onclick="openModal('compliance')">+ Add Item</button></div>
+  <div class="content"><div class="section-card"><table><thead><tr><th>Framework</th><th>Requirement</th><th>Status</th><th>Owner</th><th>Due Date</th><th>Progress</th><th>Actions</th></tr></thead><tbody id="compliance-table"></tbody></table></div></div>
+</div>
+<div class="page" id="page-issues">
+  <div class="topbar"><div><div class="topbar-title">Issues & Actions</div><div class="topbar-sub">Track open issues and remediation actions</div></div><button class="btn btn-primary" onclick="openModal('issue')">+ New Issue</button></div>
+  <div class="content"><div class="section-card"><table><thead><tr><th>ID</th><th>Issue</th><th>Linked Risk</th><th>Priority</th><th>Owner</th><th>Due Date</th><th>Status</th><th>Actions</th></tr></thead><tbody id="issues-table"></tbody></table></div></div>
+</div>
+<div class="page" id="page-email">
+  <div class="topbar"><div><div class="topbar-title">Email Alerts</div><div class="topbar-sub">Configure email notifications via EmailJS (free)</div></div></div>
+  <div class="content">
+    <div class="info-box">📧 <strong>Setup:</strong> 1. Go to <a href="https://www.emailjs.com" target="_blank">emailjs.com</a> → free account → 2. Create Email Service (connect Gmail) → 3. Create Template with variables: {{subject}}, {{message}}, {{to_email}} → 4. Paste keys below → 5. Save & Test</div>
+    <div class="settings-panel">
+      <div class="settings-title">EmailJS Configuration</div><div class="settings-sub">Enter your EmailJS credentials to enable alerts</div>
+      <div class="form-row"><div class="form-group"><label>Public Key</label><input id="ejs-pubkey" placeholder="user_xxxxxxxxxxxxxxx"/></div><div class="form-group"><label>Service ID</label><input id="ejs-service" placeholder="service_xxxxxxx"/></div></div>
+      <div class="form-row"><div class="form-group"><label>Template ID</label><input id="ejs-template" placeholder="template_xxxxxxx"/></div><div class="form-group"><label>Your Email</label><input id="ejs-email" type="email" placeholder="you@example.com"/></div></div>
+      <div style="display:flex;gap:8px"><button class="btn btn-primary" onclick="saveEmailConfig()">💾 Save</button><button class="btn btn-teal" onclick="testEmail()">📧 Test Email</button></div>
+    </div>
+    <div class="settings-panel">
+      <div class="settings-title">Alert Preferences</div><div class="settings-sub">Choose which events send an email</div>
+      <div class="toggle-row"><div><div class="toggle-label">New Critical Risk</div><div class="toggle-sub">Instant alert on Critical risk logged</div></div><label class="toggle"><input type="checkbox" id="alert-critical" checked/><span class="toggle-slider"></span></label></div>
+      <div class="toggle-row"><div><div class="toggle-label">New High Risk</div><div class="toggle-sub">Alert on High risk logged</div></div><label class="toggle"><input type="checkbox" id="alert-high" checked/><span class="toggle-slider"></span></label></div>
+      <div class="toggle-row"><div><div class="toggle-label">Issue Overdue</div><div class="toggle-sub">Alert when issue passes due date</div></div><label class="toggle"><input type="checkbox" id="alert-overdue" checked/><span class="toggle-slider"></span></label></div>
+      <div class="toggle-row"><div><div class="toggle-label">Policy Expiring Soon</div><div class="toggle-sub">Alert 30 days before review date</div></div><label class="toggle"><input type="checkbox" id="alert-policy" checked/><span class="toggle-slider"></span></label></div>
+      <div class="toggle-row"><div><div class="toggle-label">Compliance Due Soon</div><div class="toggle-sub">Alert 14 days before due date</div></div><label class="toggle"><input type="checkbox" id="alert-compliance"/><span class="toggle-slider"></span></label></div>
+      <div style="margin-top:14px"><button class="btn btn-primary" onclick="saveAlertPrefs()">Save Preferences</button></div>
+    </div>
+    <div class="warn-box">⚠️ EmailJS free tier: 200 emails/month. Alerts fire when you add items on this device.</div>
+  </div>
+</div>
+</div>
+<div class="modal-overlay" id="modal" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal"><div class="modal-header"><span class="modal-title" id="modal-title">Add</span><button class="btn btn-ghost" style="padding:4px 10px" onclick="closeModal()">✕</button></div><div class="modal-body" id="modal-body"></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveModal()">Save</button></div></div>
+</div>
+<div class="toast" id="toast"><div class="toast-dot" id="toast-dot"></div><span id="toast-msg">Saved</span></div>
 <script>
-// ======================== PASSWORD ========================
-const DEFAULT_PASS = "admin123";
-function verifyPassword(pwd) { return pwd === DEFAULT_PASS; }
-function logout() { sessionStorage.removeItem('grc_logged_in'); document.getElementById('loginOverlay').style.display='flex'; document.getElementById('grcApp').style.display='none'; }
-function checkLogin() {
-    if(sessionStorage.getItem('grc_logged_in') === 'true') {
-        document.getElementById('loginOverlay').style.display = 'none';
-        document.getElementById('grcApp').style.display = 'block';
-        initApp();
-    } else {
-        document.getElementById('loginOverlay').style.display = 'flex';
-        document.getElementById('grcApp').style.display = 'none';
-    }
-}
-document.getElementById('loginBtn').onclick = function() {
-    const pwd = document.getElementById('passwordInput').value;
-    if(verifyPassword(pwd)) {
-        sessionStorage.setItem('grc_logged_in', 'true');
-        checkLogin();
-    } else {
-        document.getElementById('loginError').innerText = 'Incorrect password';
-    }
-};
-document.getElementById('passwordInput').addEventListener('keypress', function(e) {
-    if(e.key === 'Enter') document.getElementById('loginBtn').click();
-});
-
-// ======================== DATA MODEL (All modules) ========================
-const STORE_KEY = 'grc_all_modules_v1';
-let data = JSON.parse(localStorage.getItem(STORE_KEY)) || {
-    risks: [],
-    controls: [],
-    assets: [],
-    processes: [],
-    orgUnits: [],
-    actionPlans: [],
-    issues: [],
-    incidents: [],
-    vendors: [],
-    compliance: [],
-    auditFindings: [],
-    evidence: [],
-    kris: [],
-    workflows: [],
-    auditLog: []
-};
-
-// Seed demo data if empty
-if(data.risks.length === 0) {
-    data.risks = [
-        { id:"RSK-001", name:"Data Breach", description:"Unauthorized access to sensitive data", category:"Cyber", subCategory:"Data Security", businessUnit:"IT", department:"Infrastructure", owner:"Ahmed", dateIdentified:"2025-01-15", lastReviewDate:"2025-06-01", likelihood:4, impact:5, inherentScore:20, residualScore:8, trend:"Increasing", riskVelocity:"High", confidenceLevel:"Medium", treatmentStrategy:"Mitigate", treatmentStatus:"In Progress", targetResidualScore:5, targetClosureDate:"2025-09-30", riskAccepted:"No", acceptedBy:"Risk Committee" },
-        { id:"RSK-002", name:"Supply Chain Disruption", description:"Key supplier failure", category:"Operational", subCategory:"Logistics", businessUnit:"Operations", department:"Procurement", owner:"Sara", dateIdentified:"2025-02-01", lastReviewDate:"2025-06-15", likelihood:3, impact:4, inherentScore:12, residualScore:6, trend:"Stable", riskVelocity:"Medium", confidenceLevel:"High", treatmentStrategy:"Transfer", treatmentStatus:"Not Started", targetResidualScore:4, targetClosureDate:"2025-08-30", riskAccepted:"No", acceptedBy:"" },
-        { id:"RSK-003", name:"GDPR Fine", description:"Non-compliance with data protection", category:"Compliance", subCategory:"Regulatory", businessUnit:"Legal", department:"Compliance", owner:"Khalid", dateIdentified:"2025-01-20", lastReviewDate:"2025-05-20", likelihood:2, impact:5, inherentScore:10, residualScore:4, trend:"Decreasing", riskVelocity:"Low", confidenceLevel:"High", treatmentStrategy:"Mitigate", treatmentStatus:"In Progress", targetResidualScore:3, targetClosureDate:"2025-07-31", riskAccepted:"No", acceptedBy:"" }
-    ];
-    data.controls = [
-        { id:"CTL-001", name:"Multi-Factor Authentication", type:"Preventive", effectiveness:90, owner:"IT", lastTested:"2025-03-01", linkedControls:"MFA, DLP", controlCount:2, controlStatus:"Effective" },
-        { id:"CTL-002", name:"Vendor Security Assessment", type:"Detective", effectiveness:70, owner:"Procurement", lastTested:"2025-02-15", linkedControls:"Vendor audits", controlCount:1, controlStatus:"Partially Effective" }
-    ];
-    data.assets = [{ id:"AST-001", name:"Customer Database", type:"Database", criticality:"Critical", owner:"IT", location:"AWS", riskIds:["RSK-001"] }];
-    data.processes = [{ id:"PROC-001", name:"Payroll", owner:"Finance", assets:["AST-001"], risks:["RSK-003"] }];
-    data.orgUnits = [{ id:"BU-1", name:"Finance", type:"Business Unit" }, { id:"BU-2", name:"IT", type:"Business Unit" }];
-    data.actionPlans = [{ id:"ACT-001", title:"Implement MFA for all apps", owner:"Ahmed", dueDate:"2025-06-01", progress:60, status:"In Progress", riskId:"RSK-001" }];
-    data.issues = [{ id:"ISS-001", title:"Phishing click rate high", source:"Incident", priority:"High", owner:"IT", dueDate:"2025-05-01", status:"Open", riskId:"RSK-001" }];
-    data.incidents = [{ id:"INC-001", title:"Phishing email sent", type:"Security", date:"2025-02-10", status:"Investigating", riskId:"RSK-001" }];
-    data.vendors = [{ id:"VEN-001", name:"Cloud Provider", service:"IaaS", criticality:"High", contractExpiry:"2026-12-31", score:85 }];
-    data.compliance = [
-        { framework:"ISO 27001", requirement:"Access Control", status:"Partial", owner:"IT", dueDate:"2025-12-31", progress:60, mappedControls:["CTL-001"] },
-        { framework:"QCSF 2022", requirement:"Asset Management", status:"In Progress", owner:"CISO", dueDate:"2025-08-01", progress:45, mappedControls:[] }
-    ];
-    data.auditFindings = [{ id:"AUD-001", title:"Weak password policy", severity:"High", auditType:"Internal", owner:"IT", status:"Open", dueDate:"2025-04-30" }];
-    data.evidence = [{ id:"EVD-001", name:"MFA config screenshot", type:"Screenshot", linkedTo:"CTL-001", uploadDate:"2025-03-01" }];
-    data.kris = [{ name:"Failed Logins", current:320, threshold:500, unit:"count" }, { name:"Open Vulnerabilities", current:45, threshold:100, unit:"count" }];
-    data.workflows = [];
-    data.auditLog = [];
-    localStorage.setItem(STORE_KEY, JSON.stringify(data));
-}
-function saveData() { localStorage.setItem(STORE_KEY, JSON.stringify(data)); addAuditLog("Data saved"); }
-function addAuditLog(action) { data.auditLog.unshift({ timestamp: new Date().toISOString(), user: "admin", action }); if(data.auditLog.length>100) data.auditLog.pop(); saveData(); }
-function toast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.remove('hidden'); setTimeout(()=>t.classList.add('hidden'),3000); }
-function getRiskRating(score) { if(score>=16) return "Critical"; if(score>=9) return "High"; if(score>=4) return "Medium"; return "Low"; }
-function getRiskRatingClass(score) { return "badge-"+getRiskRating(score).toLowerCase(); }
-
-// ======================== DASHBOARD ========================
-function renderDashboard() {
-    const total = data.risks.length;
-    const critical = data.risks.filter(r=>getRiskRating(r.inherentScore)==='Critical').length;
-    const openIssues = data.issues.filter(i=>i.status!=="Closed").length;
-    const avgResidual = data.risks.reduce((a,r)=>a+r.residualScore,0)/total || 0;
-    const compProgress = data.compliance.length ? Math.round(data.compliance.reduce((a,c)=>a+c.progress,0)/data.compliance.length) : 0;
-    const html = `
-        <div class="topbar"><div class="topbar-title">Executive Dashboard</div></div>
-        <div class="content">
-            <div class="stat-grid">
-                <div class="stat-card"><div class="stat-value">${total}</div><div>Total Risks</div></div>
-                <div class="stat-card"><div class="stat-value">${critical}</div><div>Critical Risks</div></div>
-                <div class="stat-card"><div class="stat-value">${openIssues}</div><div>Open Issues</div></div>
-                <div class="stat-card"><div class="stat-value">${compProgress}%</div><div>Compliance Progress</div></div>
-            </div>
-            <div class="stat-card"><h3>Risks Above Appetite (Score >10)</h3><ul>${data.risks.filter(r=>r.inherentScore>10).map(r=>`<li>${r.name} (${r.inherentScore})</li>`).join('')||'<li>None</li>'}</ul></div>
-            <div class="stat-card"><h3>KRIs Exceeding Threshold</h3><ul>${data.kris.filter(k=>k.current>k.threshold).map(k=>`<li>${k.name}: ${k.current} / ${k.threshold}</li>`).join('')||'<li>All within thresholds</li>'}</ul></div>
-        </div>
-    `;
-    document.getElementById('mainContent').innerHTML = html;
-}
-
-// ======================== RISK REGISTER ========================
-function renderRiskRegister() {
-    let html = `<div class="topbar"><div class="topbar-title">Risk Register</div><button class="btn" onclick="openModal('risk')">+ New Risk</button></div>
-    <div class="content"><div class="table-container"><table><thead><tr><th>ID</th><th>Name</th><th>Description</th><th>Category</th><th>Sub Cat</th><th>BU</th><th>Dept</th><th>Owner</th><th>Inherent</th><th>Residual</th><th>Rating</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
-    data.risks.forEach(r => {
-        html += `<tr>
-            <td>${r.id}</td><td>${r.name}</td><td>${r.description||''}</td><td>${r.category}</td>
-            <td>${r.subCategory||''}</td><td>${r.businessUnit||''}</td><td>${r.department||''}</td>
-            <td>${r.owner}</td><td>${r.inherentScore}</td><td>${r.residualScore}</td>
-            <td><span class="badge ${getRiskRatingClass(r.inherentScore)}">${getRiskRating(r.inherentScore)}</span></td>
-            <td>${r.treatmentStatus||'Open'}</td>
-            <td><button class="btn-outline" onclick="editRisk('${r.id}')">Edit</button> <button class="btn-outline" onclick="deleteRisk('${r.id}')">Del</button></td>
-        </tr>`;
-    });
-    html += `</tbody></table></div></div>`;
-    document.getElementById('mainContent').innerHTML = html;
-}
-
-// ======================== RISK ASSESSMENT & TREATMENT (inline) ========================
-function renderRiskAssessment() {
-    let html = `<div class="topbar"><div class="topbar-title">Risk Assessment & Treatment</div></div>
-    <div class="content"><div class="table-container"><table><thead><tr>
-        <th>Risk</th><th>Likelihood</th><th>Impact</th><th>Inherent</th><th>Residual</th><th>Rating</th>
-        <th>Trend</th><th>Velocity</th><th>Confidence</th><th>Treatment Strat</th><th>Treatment Status</th>
-        <th>Target Residual</th><th>Target Date</th><th>Accepted?</th><th>Action</th>
-    </tr></thead><tbody>`;
-    data.risks.forEach(r => {
-        html += `<tr>
-            <td>${r.name}</td>
-            <td><input type="number" id="lik-${r.id}" value="${r.likelihood}" min="1" max="5" style="width:70px"></td>
-            <td><input type="number" id="imp-${r.id}" value="${r.impact}" min="1" max="5" style="width:70px"></td>
-            <td id="inh-${r.id}">${r.inherentScore}</td>
-            <td><input type="number" id="res-${r.id}" value="${r.residualScore}" style="width:70px"></td>
-            <td><span class="badge ${getRiskRatingClass(r.inherentScore)}">${getRiskRating(r.inherentScore)}</span></td>
-            <td><select id="trend-${r.id}">${["Increasing","Stable","Decreasing"].map(o=>`<option ${r.trend===o?'selected':''}>${o}</option>`).join('')}</select></td>
-            <td><select id="vel-${r.id}">${["High","Medium","Low"].map(o=>`<option ${r.riskVelocity===o?'selected':''}>${o}</option>`).join('')}</select></td>
-            <td><select id="conf-${r.id}">${["High","Medium","Low"].map(o=>`<option ${r.confidenceLevel===o?'selected':''}>${o}</option>`).join('')}</select></td>
-            <td><select id="strat-${r.id}">${["Mitigate","Transfer","Accept","Avoid"].map(o=>`<option ${r.treatmentStrategy===o?'selected':''}>${o}</option>`).join('')}</select></td>
-            <td><select id="treatStatus-${r.id}">${["Not Started","In Progress","Completed"].map(o=>`<option ${r.treatmentStatus===o?'selected':''}>${o}</option>`).join('')}</select></td>
-            <td><input type="number" id="targetRes-${r.id}" value="${r.targetResidualScore||0}" style="width:70px"></td>
-            <td><input type="date" id="targetDate-${r.id}" value="${r.targetClosureDate||''}"></td>
-            <td><select id="accepted-${r.id}"><option ${r.riskAccepted==='Yes'?'selected':''}>Yes</option><option ${r.riskAccepted==='No'?'selected':''}>No</option></select></td>
-            <td><button class="btn" onclick="updateRisk('${r.id}')">Update</button></td>
-        </tr>`;
-    });
-    html += `</tbody></table></div></div>`;
-    document.getElementById('mainContent').innerHTML = html;
-}
-window.updateRisk = function(riskId) {
-    const r = data.risks.find(r=>r.id===riskId);
-    if(r) {
-        r.likelihood = parseInt(document.getElementById(`lik-${riskId}`).value);
-        r.impact = parseInt(document.getElementById(`imp-${riskId}`).value);
-        r.inherentScore = r.likelihood * r.impact;
-        r.residualScore = parseInt(document.getElementById(`res-${riskId}`).value);
-        r.trend = document.getElementById(`trend-${riskId}`).value;
-        r.riskVelocity = document.getElementById(`vel-${riskId}`).value;
-        r.confidenceLevel = document.getElementById(`conf-${riskId}`).value;
-        r.treatmentStrategy = document.getElementById(`strat-${riskId}`).value;
-        r.treatmentStatus = document.getElementById(`treatStatus-${riskId}`).value;
-        r.targetResidualScore = parseInt(document.getElementById(`targetRes-${riskId}`).value);
-        r.targetClosureDate = document.getElementById(`targetDate-${riskId}`).value;
-        r.riskAccepted = document.getElementById(`accepted-${riskId}`).value;
-        saveData();
-        toast('Risk updated');
-        renderRiskAssessment();
-    }
-};
-
-// ======================== CONTROLS ========================
-function renderControls() {
-    let html = `<div class="topbar"><div class="topbar-title">Control Library</div><button class="btn" onclick="openModal('control')">+ New Control</button></div>
-    <div class="content"><div class="table-container"><table><thead><tr><th>ID</th><th>Name</th><th>Type</th><th>Effectiveness</th><th>Owner</th><th>Last Tested</th><th>Linked Controls</th><th>Control Count</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
-    data.controls.forEach(c => {
-        html += `<tr>
-            <td>${c.id}</td><td>${c.name}</td><td>${c.type}</td>
-            <td>${c.effectiveness}%</td><td>${c.owner}</td>
-            <td>${c.lastTested}</td>
-            <td>${c.linkedControls||''}</td>
-            <td>${c.controlCount||0}</td>
-            <td><span class="badge">${c.controlStatus||''}</span></td>
-            <td><button class="btn-outline" onclick="editControl('${c.id}')">Edit</button> <button class="btn-outline" onclick="deleteControl('${c.id}')">Del</button></td>
-        </tr>`;
-    });
-    html += `</tbody></table></div></div>`;
-    document.getElementById('mainContent').innerHTML = html;
-}
-window.editControl = function(id) { openModal('control', data.controls.find(c=>c.id===id)); };
-window.deleteControl = function(id) { if(confirm('Delete control?')) { data.controls = data.controls.filter(c=>c.id!==id); saveData(); renderControls(); toast('Deleted'); } };
-
-// ======================== ASSET INVENTORY ========================
-function renderAssets() {
-    let html = `<div class="topbar"><div class="topbar-title">Asset Inventory</div><button class="btn" onclick="openModal('asset')">+ Add Asset</button></div>
-    <div class="content"><div class="table-container"><table><thead><tr><th>ID</th><th>Name</th><th>Type</th><th>Criticality</th><th>Owner</th><th>Location</th><th>Linked Risks</th><th>Actions</th></tr></thead><tbody>`;
-    data.assets.forEach(a => {
-        html += `<tr>
-            <td>${a.id}</td>
-            <td>${a.name}</td>
-            <td>${a.type}</td>
-            <td>${a.criticality}</td>
-            <td>${a.owner}</td>
-            <td>${a.location||''}</td>
-            <td>${a.riskIds?.join(',')||''}</td>
-            <td><button class="btn-outline" onclick="editAsset('${a.id}')">Edit</button> <button class="btn-outline" onclick="deleteAsset('${a.id}')">Del</button></td>
-        </tr>`;
-    });
-    html += `</tbody></table></div></div>`;
-    document.getElementById('mainContent').innerHTML = html;
-}
-window.editAsset = function(id) { openModal('asset', data.assets.find(a=>a.id===id)); };
-window.deleteAsset = function(id) { if(confirm('Delete asset?')) { data.assets = data.assets.filter(a=>a.id!==id); saveData(); renderAssets(); toast('Deleted'); } };
-
-// ======================== BUSINESS PROCESSES ========================
-function renderProcesses() {
-    let html = `<div class="topbar"><div class="topbar-title">Business Processes</div><button class="btn" onclick="openModal('process')">+ Add Process</button></div>
-    <div class="content"><div class="table-container"><tr><thead><tr><th>ID</th><th>Name</th><th>Owner</th><th>Linked Assets</th><th>Linked Risks</th><th>Actions</th></tr></thead><tbody>`;
-    data.processes.forEach(p => {
-        html += `<tr>
-            <td>${p.id}</td>
-            <td>${p.name}</td>
-            <td>${p.owner}</td>
-            <td>${p.assets?.join(',')||''}</td>
-            <td>${p.risks?.join(',')||''}</td>
-            <td><button class="btn-outline" onclick="editProcess('${p.id}')">Edit</button> <button class="btn-outline" onclick="deleteProcess('${p.id}')">Del</button></td>
-        </tr>`;
-    });
-    html += `</tbody></table></div></div>`;
-    document.getElementById('mainContent').innerHTML = html;
-}
-window.editProcess = function(id) { openModal('process', data.processes.find(p=>p.id===id)); };
-window.deleteProcess = function(id) { if(confirm('Delete process?')) { data.processes = data.processes.filter(p=>p.id!==id); saveData(); renderProcesses(); toast('Deleted'); } };
-
-// ======================== ORG STRUCTURE ========================
-function renderOrgUnits() {
-    let html = `<div class="topbar"><div class="topbar-title">Organizational Structure</div><button class="btn" onclick="openModal('orgUnit')">+ Add Unit</button></div>
-    <div class="content"><div class="table-container"><table><thead><tr><th>ID</th><th>Name</th><th>Type</th><th>Actions</th></tr></thead><tbody>`;
-    data.orgUnits.forEach(u => {
-        html += `<tr>
-            <td>${u.id}</td>
-            <td>${u.name}</td>
-            <td>${u.type}</td>
-            <td><button class="btn-outline" onclick="editOrgUnit('${u.id}')">Edit</button> <button class="btn-outline" onclick="deleteOrgUnit('${u.id}')">Del</button></td>
-        </tr>`;
-    });
-    html += `</tbody></table></div></div>`;
-    document.getElementById('mainContent').innerHTML = html;
-}
-window.editOrgUnit = function(id) { openModal('orgUnit', data.orgUnits.find(u=>u.id===id)); };
-window.deleteOrgUnit = function(id) { if(confirm('Delete unit?')) { data.orgUnits = data.orgUnits.filter(u=>u.id!==id); saveData(); renderOrgUnits(); toast('Deleted'); } };
-
-// ======================== ACTION PLANS ========================
-function renderActionPlans() {
-    let html = `<div class="topbar"><div class="topbar-title">Action Plans</div><button class="btn" onclick="openModal('actionPlan')">+ Add Action</button></div>
-    <div class="content"><div class="table-container"><table><thead><tr><th>ID</th><th>Title</th><th>Owner</th><th>Due Date</th><th>Progress</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
-    data.actionPlans.forEach(a => {
-        html += `<tr>
-            <td>${a.id}</td>
-            <td>${a.title}</td>
-            <td>${a.owner}</td>
-            <td>${a.dueDate}</td>
-            <td>${a.progress}%</td>
-            <td>${a.status}</td>
-            <td><button class="btn-outline" onclick="editActionPlan('${a.id}')">Edit</button> <button class="btn-outline" onclick="deleteActionPlan('${a.id}')">Del</button></td>
-        </tr>`;
-    });
-    html += `</tbody></table></div></div>`;
-    document.getElementById('mainContent').innerHTML = html;
-}
-window.editActionPlan = function(id) { openModal('actionPlan', data.actionPlans.find(a=>a.id===id)); };
-window.deleteActionPlan = function(id) { if(confirm('Delete action plan?')) { data.actionPlans = data.actionPlans.filter(a=>a.id!==id); saveData(); renderActionPlans(); toast('Deleted'); } };
-
-// ======================== ISSUES ========================
-function renderIssues() {
-    let html = `<div class="topbar"><div class="topbar-title">Issues Management</div><button class="btn" onclick="openModal('issue')">+ Add Issue</button></div>
-    <div class="content"><div class="table-container"><tr><thead><tr><th>ID</th><th>Title</th><th>Source</th><th>Priority</th><th>Owner</th><th>Due Date</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
-    data.issues.forEach(i => {
-        html += `<tr>
-            <td>${i.id}</td>
-            <td>${i.title}</td>
-            <td>${i.source}</td>
-            <td>${i.priority}</td>
-            <td>${i.owner}</td>
-            <td>${i.dueDate}</td>
-            <td>${i.status}</td>
-            <td><button class="btn-outline" onclick="editIssue('${i.id}')">Edit</button> <button class="btn-outline" onclick="deleteIssue('${i.id}')">Del</button></td>
-        </tr>`;
-    });
-    html += `</tbody></td></div></div>`;
-    document.getElementById('mainContent').innerHTML = html;
-}
-window.editIssue = function(id) { openModal('issue', data.issues.find(i=>i.id===id)); };
-window.deleteIssue = function(id) { if(confirm('Delete issue?')) { data.issues = data.issues.filter(i=>i.id!==id); saveData(); renderIssues(); toast('Deleted'); } };
-
-// ======================== INCIDENTS ========================
-function renderIncidents() {
-    let html = `<div class="topbar"><div class="topbar-title">Incident Register</div><button class="btn" onclick="openModal('incident')">+ Log Incident</button></div>
-    <div class="content"><div class="table-container"><table><thead><tr><th>ID</th><th>Title</th><th>Type</th><th>Date</th><th>Status</th><th>Linked Risk</th><th>Actions</th></tr></thead><tbody>`;
-    data.incidents.forEach(i => {
-        html += `<tr>
-            <td>${i.id}</td>
-            <td>${i.title}</td>
-            <td>${i.type}</td>
-            <td>${i.date}</td>
-            <td>${i.status}</td>
-            <td>${i.riskId||''}</td>
-            <td><button class="btn-outline" onclick="editIncident('${i.id}')">Edit</button> <button class="btn-outline" onclick="deleteIncident('${i.id}')">Del</button></td>
-        </tr>`;
-    });
-    html += `</tbody></table></div></div>`;
-    document.getElementById('mainContent').innerHTML = html;
-}
-window.editIncident = function(id) { openModal('incident', data.incidents.find(i=>i.id===id)); };
-window.deleteIncident = function(id) { if(confirm('Delete incident?')) { data.incidents = data.incidents.filter(i=>i.id!==id); saveData(); renderIncidents(); toast('Deleted'); } };
-
-// ======================== VENDOR RISK ========================
-function renderVendors() {
-    let html = `<div class="topbar"><div class="topbar-title">Vendor Risk Management</div><button class="btn" onclick="openModal('vendor')">+ Add Vendor</button></div>
-    <div class="content"><div class="table-container"><table><thead><tr><th>ID</th><th>Name</th><th>Service</th><th>Criticality</th><th>Contract Expiry</th><th>Assessment Score</th><th>Actions</th></tr></thead><tbody>`;
-    data.vendors.forEach(v => {
-        html += `<tr>
-            <td>${v.id}</td>
-            <td>${v.name}</td>
-            <td>${v.service}</td>
-            <td>${v.criticality}</td>
-            <td>${v.contractExpiry}</td>
-            <td>${v.score}</td>
-            <td><button class="btn-outline" onclick="editVendor('${v.id}')">Edit</button> <button class="btn-outline" onclick="deleteVendor('${v.id}')">Del</button></td>
-        </tr>`;
-    });
-    html += `</tbody></table></div></div>`;
-    document.getElementById('mainContent').innerHTML = html;
-}
-window.editVendor = function(id) { openModal('vendor', data.vendors.find(v=>v.id===id)); };
-window.deleteVendor = function(id) { if(confirm('Delete vendor?')) { data.vendors = data.vendors.filter(v=>v.id!==id); saveData(); renderVendors(); toast('Deleted'); } };
-
-// ======================== COMPLIANCE ========================
-function renderCompliance() {
-    let html = `<div class="topbar"><div class="topbar-title">Compliance Register (ISO, NIST, QCSF 2022)</div><button class="btn" onclick="openModal('compliance')">+ Add Requirement</button></div>
-    <div class="content"><div class="table-container"><tr><thead><tr><th>Framework</th><th>Requirement</th><th>Status</th><th>Progress</th><th>Owner</th><th>Due Date</th><th>Actions</th></tr></thead><tbody>`;
-    data.compliance.forEach(c => {
-        html += `<tr>
-            <td>${c.framework}</td>
-            <td>${c.requirement}</td>
-            <td>${c.status}</td>
-            <td>${c.progress}%</td>
-            <td>${c.owner}</td>
-            <td>${c.dueDate}</td>
-            <td><button class="btn-outline" onclick="editCompliance('${c.framework}','${c.requirement}')">Edit</button> <button class="btn-outline" onclick="deleteCompliance('${c.framework}','${c.requirement}')">Del</button></td>
-        </tr>`;
-    });
-    html += `</tbody></table></div></div>`;
-    document.getElementById('mainContent').innerHTML = html;
-}
-window.editCompliance = function(fw, req) { const item = data.compliance.find(c=>c.framework===fw && c.requirement===req); if(item) openModal('compliance', item); };
-window.deleteCompliance = function(fw, req) { if(confirm('Delete compliance item?')) { data.compliance = data.compliance.filter(c=>!(c.framework===fw && c.requirement===req)); saveData(); renderCompliance(); toast('Deleted'); } };
-
-// ======================== AUDIT FINDINGS ========================
-function renderAuditFindings() {
-    let html = `<div class="topbar"><div class="topbar-title">Audit Findings</div><button class="btn" onclick="openModal('auditFinding')">+ Add Finding</button></div>
-    <div class="content"><div class="table-container"><table><thead><tr><th>ID</th><th>Finding</th><th>Severity</th><th>Audit Type</th><th>Status</th><th>Due Date</th><th>Actions</th></tr></thead><tbody>`;
-    data.auditFindings.forEach(f => {
-        html += `<tr>
-            <td>${f.id}</td>
-            <td>${f.title}</td>
-            <td><span class="badge ${f.severity==='High'?'badge-critical':f.severity==='Medium'?'badge-medium':'badge-low'}">${f.severity}</span></td>
-            <td>${f.auditType}</td>
-            <td>${f.status}</td>
-            <td>${f.dueDate}</td>
-            <td><button class="btn-outline" onclick="editAuditFinding('${f.id}')">Edit</button> <button class="btn-outline" onclick="deleteAuditFinding('${f.id}')">Del</button></td>
-        </tr>`;
-    });
-    html += `</tbody></table></div></div>`;
-    document.getElementById('mainContent').innerHTML = html;
-}
-window.editAuditFinding = function(id) { openModal('auditFinding', data.auditFindings.find(f=>f.id===id)); };
-window.deleteAuditFinding = function(id) { if(confirm('Delete finding?')) { data.auditFindings = data.auditFindings.filter(f=>f.id!==id); saveData(); renderAuditFindings(); toast('Deleted'); } };
-
-// ======================== EVIDENCE ========================
-function renderEvidence() {
-    let html = `<div class="topbar"><div class="topbar-title">Evidence Repository</div><button class="btn" onclick="openModal('evidence')">+ Upload Evidence</button></div>
-    <div class="content"><div class="table-container"><tr><thead><tr><th>ID</th><th>Name</th><th>Type</th><th>Linked To</th><th>Upload Date</th><th>Actions</th></tr></thead><tbody>`;
-    data.evidence.forEach(e => {
-        html += `<tr>
-            <td>${e.id}</td>
-            <td>${e.name}</td>
-            <td>${e.type}</td>
-            <td>${e.linkedTo}</td>
-            <td>${e.uploadDate}</td>
-            <td><button class="btn-outline" onclick="editEvidence('${e.id}')">Edit</button> <button class="btn-outline" onclick="deleteEvidence('${e.id}')">Del</button></td>
-        </tr>`;
-    });
-    html += `</tbody></td></div></div>`;
-    document.getElementById('mainContent').innerHTML = html;
-}
-window.editEvidence = function(id) { openModal('evidence', data.evidence.find(e=>e.id===id)); };
-window.deleteEvidence = function(id) { if(confirm('Delete evidence?')) { data.evidence = data.evidence.filter(e=>e.id!==id); saveData(); renderEvidence(); toast('Deleted'); } };
-
-// ======================== KRIs ========================
-function renderKRIs() {
-    let html = `<div class="topbar"><div class="topbar-title">Key Risk Indicators (KRIs)</div><button class="btn" onclick="openModal('kri')">+ Add KRI</button></div>
-    <div class="content"><div class="table-container"><table><thead><tr><th>Name</th><th>Current Value</th><th>Threshold</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
-    data.kris.forEach((k, idx) => {
-        html += `<tr>
-            <td>${k.name}</td>
-            <td><input type="number" id="kriCurr-${idx}" value="${k.current}" style="width:80px"> <button class="btn" onclick="updateKRI(${idx})">Update</button></td>
-            <td>${k.threshold}</td>
-            <td><span class="badge ${k.current>k.threshold?'badge-critical':'badge-medium'}">${k.current>k.threshold?'Exceeded':'OK'}</span></td>
-            <td><button class="btn-outline" onclick="deleteKRI(${idx})">Del</button></td>
-        </tr>`;
-    });
-    html += `</tbody></table></div></div>`;
-    document.getElementById('mainContent').innerHTML = html;
-}
-window.updateKRI = function(idx) {
-    const newVal = parseInt(document.getElementById(`kriCurr-${idx}`).value);
-    data.kris[idx].current = newVal;
-    saveData();
-    renderKRIs();
-    toast('KRI updated');
-};
-window.deleteKRI = function(idx) {
-    if(confirm('Delete KRI?')) { data.kris.splice(idx,1); saveData(); renderKRIs(); toast('Deleted'); }
-};
-
-// ======================== WORKFLOW ========================
-function renderWorkflow() {
-    let html = `<div class="topbar"><div class="topbar-title">Workflow Approvals</div><button class="btn" onclick="openModal('workflow')">+ Request Approval</button></div>
-    <div class="content"><div class="table-container"><td><thead><tr><th>ID</th><th>Item Type</th><th>Item Name</th><th>Requestor</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
-    data.workflows.forEach(w => {
-        html += `<tr>
-            <td>${w.id}</td>
-            <td>${w.itemType}</td>
-            <td>${w.itemName}</td>
-            <td>${w.requestor}</td>
-            <td>${w.status}</td>
-            <td>${w.status==='pending' ? `<button class="btn-outline" onclick="approveWorkflow('${w.id}')">Approve</button>` : ''} <button class="btn-outline" onclick="deleteWorkflow('${w.id}')">Del</button></td>
-        </tr>`;
-    });
-    html += `</tbody></table></div></div>`;
-    document.getElementById('mainContent').innerHTML = html;
-}
-window.approveWorkflow = function(id) { const w = data.workflows.find(w=>w.id===id); if(w) { w.status='approved'; saveData(); renderWorkflow(); toast('Approved'); } };
-window.deleteWorkflow = function(id) { if(confirm('Delete workflow item?')) { data.workflows = data.workflows.filter(w=>w.id!==id); saveData(); renderWorkflow(); toast('Deleted'); } };
-
-// ======================== AUDIT TRAIL ========================
-function renderAuditTrail() {
-    let html = `<div class="topbar"><div class="topbar-title">Audit Trail</div></div>
-    <div class="content"><div class="table-container"><table><thead><tr><th>Timestamp</th><th>User</th><th>Action</th></tr></thead><tbody>`;
-    data.auditLog.slice(0,50).forEach(log => {
-        html += `<tr>
-            <td>${new Date(log.timestamp).toLocaleString()}</td>
-            <td>${log.user}</td>
-            <td>${log.action}</td>
-        </tr>`;
-    });
-    html += `</tbody></table></div></div>`;
-    document.getElementById('mainContent').innerHTML = html;
-}
-
-// ======================== REPORTS ========================
-function renderReports() {
-    let html = `<div class="topbar"><div class="topbar-title">Reports</div></div>
-    <div class="content"><div class="stat-card"><h3>Generate CSV Reports</h3><select id="reportType"><option value="risk">Risk Register</option><option value="asset">Asset Inventory</option><option value="control">Controls</option><option value="compliance">Compliance</option></select><button class="btn" onclick="exportReport()">Export CSV</button></div></div>`;
-    document.getElementById('mainContent').innerHTML = html;
-}
-window.exportReport = function() {
-    const type = document.getElementById('reportType').value;
-    let rows = [];
-    if(type === 'risk') rows = [['ID','Name','Category','Inherent','Residual','Rating','Owner','Status'], ...data.risks.map(r=>[r.id,r.name,r.category,r.inherentScore,r.residualScore,getRiskRating(r.inherentScore),r.owner,r.treatmentStatus])];
-    else if(type === 'asset') rows = [['ID','Name','Type','Criticality','Owner','Location'], ...data.assets.map(a=>[a.id,a.name,a.type,a.criticality,a.owner,a.location])];
-    else if(type === 'control') rows = [['ID','Name','Type','Effectiveness','Owner','Status'], ...data.controls.map(c=>[c.id,c.name,c.type,c.effectiveness,c.owner,c.controlStatus])];
-    else rows = [['Framework','Requirement','Status','Progress','Owner'], ...data.compliance.map(c=>[c.framework,c.requirement,c.status,c.progress,c.owner])];
-    const csv = rows.map(row=>row.map(cell=>`"${cell}"`).join(',')).join('\n');
-    const blob = new Blob(["\uFEFF"+csv], {type:'text/csv'});
-    const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`${type}_report.csv`; a.click(); toast('Report downloaded');
-};
-
-// ======================== SECURITY (Change Password) ========================
-function renderSecurity() {
-    let html = `<div class="topbar"><div class="topbar-title">Security Settings</div></div>
-    <div class="content"><div class="stat-card"><h3>Change Password</h3><div class="form-group"><label>Current Password</label><input type="password" id="currentPwd"></div><div class="form-group"><label>New Password</label><input type="password" id="newPwd"></div><div class="form-group"><label>Confirm New Password</label><input type="password" id="confirmPwd"></div><button class="btn" onclick="changePassword()">Update Password</button><div id="pwdMsg" class="error-msg"></div></div><div class="stat-card"><button class="btn btn-outline" onclick="logout()">Logout</button></div></div>`;
-    document.getElementById('mainContent').innerHTML = html;
-}
-window.changePassword = function() {
-    const cur = document.getElementById('currentPwd').value;
-    const newPwd = document.getElementById('newPwd').value;
-    const conf = document.getElementById('confirmPwd').value;
-    if(cur !== DEFAULT_PASS) { document.getElementById('pwdMsg').innerText = 'Current password incorrect'; return; }
-    if(newPwd.length < 4) { document.getElementById('pwdMsg').innerText = 'Password must be at least 4 characters'; return; }
-    if(newPwd !== conf) { document.getElementById('pwdMsg').innerText = 'Passwords do not match'; return; }
-    // In a real app you'd update the stored hash. For demo, we just show message.
-    document.getElementById('pwdMsg').innerText = 'Password changed (demo). Restart to use new password.';
-    setTimeout(() => logout(), 2000);
-};
-
-// ======================== GENERIC MODAL HANDLER (Add/Edit for all modules) ========================
-let currentModalType = null, currentEditId = null;
-window.openModal = function(type, item) {
-    currentModalType = type;
-    currentEditId = item?.id || null;
-    let form = '';
-    if(type === 'risk') {
-        const r = item || {};
-        form = `<div class="form-row"><div class="form-group"><label>Risk Name</label><input id="riskName" value="${r.name||''}"></div><div class="form-group"><label>Risk ID</label><input id="riskId" value="${r.id||`RSK-${data.risks.length+1}`}"></div></div>
-        <div class="form-group"><label>Description</label><textarea id="riskDesc">${r.description||''}</textarea></div>
-        <div class="form-row"><div class="form-group"><label>Category</label><select id="riskCat">${["Cyber","Operational","Compliance","Financial","Strategic"].map(c=>`<option ${r.category===c?'selected':''}>${c}</option>`).join('')}</select></div><div class="form-group"><label>Sub Category</label><input id="riskSubCat" value="${r.subCategory||''}"></div></div>
-        <div class="form-row"><div class="form-group"><label>Business Unit</label><input id="riskBU" value="${r.businessUnit||''}"></div><div class="form-group"><label>Department</label><input id="riskDept" value="${r.department||''}"></div></div>
-        <div class="form-row"><div class="form-group"><label>Risk Owner</label><input id="riskOwner" value="${r.owner||''}"></div><div class="form-group"><label>Date Identified</label><input type="date" id="riskDateId" value="${r.dateIdentified||''}"></div></div>
-        <div class="form-row"><div class="form-group"><label>Last Review Date</label><input type="date" id="riskLastReview" value="${r.lastReviewDate||''}"></div><div class="form-group"><label>Likelihood (1-5)</label><input type="number" id="riskLik" value="${r.likelihood||3}" min="1" max="5"></div></div>
-        <div class="form-row"><div class="form-group"><label>Impact (1-5)</label><input type="number" id="riskImp" value="${r.impact||3}" min="1" max="5"></div><div class="form-group"><label>Residual Score</label><input type="number" id="riskRes" value="${r.residualScore||0}"></div></div>
-        <div class="form-row"><div class="form-group"><label>Trend</label><select id="riskTrend">${["Increasing","Stable","Decreasing"].map(o=>`<option ${r.trend===o?'selected':''}>${o}</option>`).join('')}</select></div><div class="form-group"><label>Risk Velocity</label><select id="riskVel">${["High","Medium","Low"].map(o=>`<option ${r.riskVelocity===o?'selected':''}>${o}</option>`).join('')}</select></div></div>
-        <div class="form-row"><div class="form-group"><label>Confidence Level</label><select id="riskConf">${["High","Medium","Low"].map(o=>`<option ${r.confidenceLevel===o?'selected':''}>${o}</option>`).join('')}</select></div><div class="form-group"><label>Treatment Strategy</label><select id="riskTreatStrat">${["Mitigate","Transfer","Accept","Avoid"].map(o=>`<option ${r.treatmentStrategy===o?'selected':''}>${o}</option>`).join('')}</select></div></div>
-        <div class="form-row"><div class="form-group"><label>Treatment Status</label><select id="riskTreatStatus">${["Not Started","In Progress","Completed"].map(o=>`<option ${r.treatmentStatus===o?'selected':''}>${o}</option>`).join('')}</select></div><div class="form-group"><label>Target Residual Score</label><input type="number" id="riskTargetRes" value="${r.targetResidualScore||0}"></div></div>
-        <div class="form-row"><div class="form-group"><label>Target Closure Date</label><input type="date" id="riskTargetDate" value="${r.targetClosureDate||''}"></div><div class="form-group"><label>Risk Accepted</label><select id="riskAccepted"><option ${r.riskAccepted==='Yes'?'selected':''}>Yes</option><option ${r.riskAccepted==='No'?'selected':''}>No</option></select></div></div>
-        <div class="form-group"><label>Accepted By</label><input id="riskAcceptedBy" value="${r.acceptedBy||''}"></div>`;
-    } else if(type === 'control') {
-        const c = item || {};
-        form = `<div class="form-row"><div class="form-group"><label>Control Name</label><input id="ctrlName" value="${c.name||''}"></div><div class="form-group"><label>Control ID</label><input id="ctrlId" value="${c.id||`CTL-${data.controls.length+1}`}"></div></div>
-        <div class="form-row"><div class="form-group"><label>Type</label><select id="ctrlType">${["Preventive","Detective","Corrective"].map(t=>`<option ${c.type===t?'selected':''}>${t}</option>`).join('')}</select></div><div class="form-group"><label>Effectiveness (%)</label><input type="number" id="ctrlEff" value="${c.effectiveness||0}" min="0" max="100"></div></div>
-        <div class="form-row"><div class="form-group"><label>Owner</label><input id="ctrlOwner" value="${c.owner||''}"></div><div class="form-group"><label>Last Tested</label><input type="date" id="ctrlLastTested" value="${c.lastTested||''}"></div></div>
-        <div class="form-row"><div class="form-group"><label>Linked Controls</label><input id="ctrlLinked" value="${c.linkedControls||''}"></div><div class="form-group"><label>Control Count</label><input type="number" id="ctrlCount" value="${c.controlCount||0}"></div></div>
-        <div class="form-group"><label>Control Status</label><select id="ctrlStatus">${["Effective","Partially Effective","Ineffective"].map(s=>`<option ${c.controlStatus===s?'selected':''}>${s}</option>`).join('')}</select></div>`;
-    } else if(type === 'asset') {
-        const a = item || {};
-        form = `<div class="form-row"><div class="form-group"><label>Asset Name</label><input id="assetName" value="${a.name||''}"></div><div class="form-group"><label>Asset ID</label><input id="assetId" value="${a.id||`AST-${data.assets.length+1}`}"></div></div>
-        <div class="form-row"><div class="form-group"><label>Type</label><input id="assetType" value="${a.type||''}"></div><div class="form-group"><label>Criticality</label><select id="assetCrit"><option ${a.criticality==='Critical'?'selected':''}>Critical</option><option ${a.criticality==='High'?'selected':''}>High</option><option ${a.criticality==='Medium'?'selected':''}>Medium</option><option ${a.criticality==='Low'?'selected':''}>Low</option></select></div></div>
-        <div class="form-row"><div class="form-group"><label>Owner</label><input id="assetOwner" value="${a.owner||''}"></div><div class="form-group"><label>Location</label><input id="assetLoc" value="${a.location||''}"></div></div>
-        <div class="form-group"><label>Linked Risks (comma IDs)</label><input id="assetRisks" value="${a.riskIds?.join(',')||''}"></div>`;
-    } else if(type === 'process') {
-        const p = item || {};
-        form = `<div class="form-row"><div class="form-group"><label>Process Name</label><input id="procName" value="${p.name||''}"></div><div class="form-group"><label>Process ID</label><input id="procId" value="${p.id||`PROC-${data.processes.length+1}`}"></div></div>
-        <div class="form-row"><div class="form-group"><label>Owner</label><input id="procOwner" value="${p.owner||''}"></div></div>
-        <div class="form-group"><label>Linked Assets (comma IDs)</label><input id="procAssets" value="${p.assets?.join(',')||''}"></div>
-        <div class="form-group"><label>Linked Risks (comma IDs)</label><input id="procRisks" value="${p.risks?.join(',')||''}"></div>`;
-    } else if(type === 'orgUnit') {
-        const u = item || {};
-        form = `<div class="form-row"><div class="form-group"><label>Unit Name</label><input id="unitName" value="${u.name||''}"></div><div class="form-group"><label>Unit ID</label><input id="unitId" value="${u.id||`UNIT-${data.orgUnits.length+1}`}"></div></div>
-        <div class="form-group"><label>Type</label><select id="unitType"><option ${u.type==='Business Unit'?'selected':''}>Business Unit</option><option ${u.type==='Department'?'selected':''}>Department</option><option ${u.type==='Location'?'selected':''}>Location</option></select></div>`;
-    } else if(type === 'actionPlan') {
-        const a = item || {};
-        form = `<div class="form-row"><div class="form-group"><label>Title</label><input id="actTitle" value="${a.title||''}"></div><div class="form-group"><label>ID</label><input id="actId" value="${a.id||`ACT-${data.actionPlans.length+1}`}"></div></div>
-        <div class="form-row"><div class="form-group"><label>Owner</label><input id="actOwner" value="${a.owner||''}"></div><div class="form-group"><label>Due Date</label><input type="date" id="actDue" value="${a.dueDate||''}"></div></div>
-        <div class="form-row"><div class="form-group"><label>Progress (%)</label><input type="number" id="actProgress" value="${a.progress||0}"></div><div class="form-group"><label>Status</label><select id="actStatus"><option ${a.status==='Not Started'?'selected':''}>Not Started</option><option ${a.status==='In Progress'?'selected':''}>In Progress</option><option ${a.status==='Completed'?'selected':''}>Completed</option></select></div></div>
-        <div class="form-group"><label>Linked Risk ID</label><input id="actRiskId" value="${a.riskId||''}"></div>`;
-    } else if(type === 'issue') {
-        const i = item || {};
-        form = `<div class="form-row"><div class="form-group"><label>Title</label><input id="issueTitle" value="${i.title||''}"></div><div class="form-group"><label>ID</label><input id="issueId" value="${i.id||`ISS-${data.issues.length+1}`}"></div></div>
-        <div class="form-row"><div class="form-group"><label>Source</label><select id="issueSource"><option ${i.source==='Audit'?'selected':''}>Audit</option><option ${i.source==='Incident'?'selected':''}>Incident</option><option ${i.source==='Risk Assessment'?'selected':''}>Risk Assessment</option></select></div><div class="form-group"><label>Priority</label><select id="issuePriority"><option ${i.priority==='Critical'?'selected':''}>Critical</option><option ${i.priority==='High'?'selected':''}>High</option><option ${i.priority==='Medium'?'selected':''}>Medium</option><option ${i.priority==='Low'?'selected':''}>Low</option></select></div></div>
-        <div class="form-row"><div class="form-group"><label>Owner</label><input id="issueOwner" value="${i.owner||''}"></div><div class="form-group"><label>Due Date</label><input type="date" id="issueDue" value="${i.dueDate||''}"></div></div>
-        <div class="form-group"><label>Status</label><select id="issueStatus"><option ${i.status==='Open'?'selected':''}>Open</option><option ${i.status==='In Progress'?'selected':''}>In Progress</option><option ${i.status==='Closed'?'selected':''}>Closed</option></select></div>`;
-    } else if(type === 'incident') {
-        const inc = item || {};
-        form = `<div class="form-row"><div class="form-group"><label>Title</label><input id="incTitle" value="${inc.title||''}"></div><div class="form-group"><label>ID</label><input id="incId" value="${inc.id||`INC-${data.incidents.length+1}`}"></div></div>
-        <div class="form-row"><div class="form-group"><label>Type</label><select id="incType"><option ${inc.type==='Security'?'selected':''}>Security</option><option ${inc.type==='Operational'?'selected':''}>Operational</option><option ${inc.type==='Privacy'?'selected':''}>Privacy</option></select></div><div class="form-group"><label>Date</label><input type="date" id="incDate" value="${inc.date||''}"></div></div>
-        <div class="form-row"><div class="form-group"><label>Status</label><select id="incStatus"><option ${inc.status==='Investigating'?'selected':''}>Investigating</option><option ${inc.status==='Resolved'?'selected':''}>Resolved</option><option ${inc.status==='Closed'?'selected':''}>Closed</option></select></div><div class="form-group"><label>Linked Risk ID</label><input id="incRiskId" value="${inc.riskId||''}"></div></div>`;
-    } else if(type === 'vendor') {
-        const v = item || {};
-        form = `<div class="form-row"><div class="form-group"><label>Vendor Name</label><input id="venName" value="${v.name||''}"></div><div class="form-group"><label>ID</label><input id="venId" value="${v.id||`VEN-${data.vendors.length+1}`}"></div></div>
-        <div class="form-row"><div class="form-group"><label>Service</label><input id="venService" value="${v.service||''}"></div><div class="form-group"><label>Criticality</label><select id="venCrit"><option ${v.criticality==='High'?'selected':''}>High</option><option ${v.criticality==='Medium'?'selected':''}>Medium</option><option ${v.criticality==='Low'?'selected':''}>Low</option></select></div></div>
-        <div class="form-row"><div class="form-group"><label>Contract Expiry</label><input type="date" id="venExpiry" value="${v.contractExpiry||''}"></div><div class="form-group"><label>Assessment Score (0-100)</label><input type="number" id="venScore" value="${v.score||0}" min="0" max="100"></div></div>`;
-    } else if(type === 'compliance') {
-        const c = item || {};
-        form = `<div class="form-row"><div class="form-group"><label>Framework</label><input id="compFw" value="${c.framework||''}"></div><div class="form-group"><label>Requirement</label><input id="compReq" value="${c.requirement||''}"></div></div>
-        <div class="form-row"><div class="form-group"><label>Status</label><select id="compStatus"><option ${c.status==='Compliant'?'selected':''}>Compliant</option><option ${c.status==='Partial'?'selected':''}>Partial</option><option ${c.status==='Non-Compliant'?'selected':''}>Non-Compliant</option></select></div><div class="form-group"><label>Progress (%)</label><input type="number" id="compProg" value="${c.progress||0}"></div></div>
-        <div class="form-row"><div class="form-group"><label>Owner</label><input id="compOwner" value="${c.owner||''}"></div><div class="form-group"><label>Due Date</label><input type="date" id="compDue" value="${c.dueDate||''}"></div></div>`;
-    } else if(type === 'auditFinding') {
-        const af = item || {};
-        form = `<div class="form-row"><div class="form-group"><label>Finding Title</label><input id="auditTitle" value="${af.title||''}"></div><div class="form-group"><label>ID</label><input id="auditId" value="${af.id||`AUD-${data.auditFindings.length+1}`}"></div></div>
-        <div class="form-row"><div class="form-group"><label>Severity</label><select id="auditSev"><option ${af.severity==='Critical'?'selected':''}>Critical</option><option ${af.severity==='High'?'selected':''}>High</option><option ${af.severity==='Medium'?'selected':''}>Medium</option><option ${af.severity==='Low'?'selected':''}>Low</option></select></div><div class="form-group"><label>Audit Type</label><select id="auditType"><option ${af.auditType==='Internal'?'selected':''}>Internal</option><option ${af.auditType==='External'?'selected':''}>External</option><option ${af.auditType==='Regulatory'?'selected':''}>Regulatory</option></select></div></div>
-        <div class="form-row"><div class="form-group"><label>Status</label><select id="auditStatus"><option ${af.status==='Open'?'selected':''}>Open</option><option ${af.status==='In Progress'?'selected':''}>In Progress</option><option ${af.status==='Closed'?'selected':''}>Closed</option></select></div><div class="form-group"><label>Due Date</label><input type="date" id="auditDue" value="${af.dueDate||''}"></div></div>`;
-    } else if(type === 'evidence') {
-        const e = item || {};
-        form = `<div class="form-row"><div class="form-group"><label>Evidence Name</label><input id="evName" value="${e.name||''}"></div><div class="form-group"><label>ID</label><input id="evId" value="${e.id||`EVD-${data.evidence.length+1}`}"></div></div>
-        <div class="form-row"><div class="form-group"><label>Type</label><select id="evType"><option ${e.type==='Screenshot'?'selected':''}>Screenshot</option><option ${e.type==='Document'?'selected':''}>Document</option><option ${e.type==='Log'?'selected':''}>Log</option></select></div><div class="form-group"><label>Linked To (e.g., control ID)</label><input id="evLink" value="${e.linkedTo||''}"></div></div>
-        <div class="form-group"><label>Upload Date</label><input type="date" id="evDate" value="${e.uploadDate||''}"></div>`;
-    } else if(type === 'kri') {
-        // KRI add uses separate inline update; we handle via renderKRIs directly
-        toast("Use the inline update on KRIs page");
-        closeModal();
-        return;
-    } else if(type === 'workflow') {
-        form = `<div class="form-row"><div class="form-group"><label>Item Type</label><select id="wfType"><option>Risk</option><option>Control</option><option>Policy</option></select></div><div class="form-group"><label>Item Name</label><input id="wfName"></div></div>
-        <div class="form-group"><label>Requestor</label><input id="wfRequestor" value="admin"></div>`;
-    }
-    document.getElementById('modalBody').innerHTML = form;
-    document.getElementById('modal').classList.remove('hidden');
-};
-window.closeModal = function() { document.getElementById('modal').classList.add('hidden'); currentModalType=null; };
-window.saveModal = function() {
-    if(currentModalType === 'risk') {
-        const newRisk = {
-            id: document.getElementById('riskId').value,
-            name: document.getElementById('riskName').value,
-            description: document.getElementById('riskDesc').value,
-            category: document.getElementById('riskCat').value,
-            subCategory: document.getElementById('riskSubCat').value,
-            businessUnit: document.getElementById('riskBU').value,
-            department: document.getElementById('riskDept').value,
-            owner: document.getElementById('riskOwner').value,
-            dateIdentified: document.getElementById('riskDateId').value,
-            lastReviewDate: document.getElementById('riskLastReview').value,
-            likelihood: parseInt(document.getElementById('riskLik').value),
-            impact: parseInt(document.getElementById('riskImp').value),
-            inherentScore: parseInt(document.getElementById('riskLik').value) * parseInt(document.getElementById('riskImp').value),
-            residualScore: parseInt(document.getElementById('riskRes').value),
-            trend: document.getElementById('riskTrend').value,
-            riskVelocity: document.getElementById('riskVel').value,
-            confidenceLevel: document.getElementById('riskConf').value,
-            treatmentStrategy: document.getElementById('riskTreatStrat').value,
-            treatmentStatus: document.getElementById('riskTreatStatus').value,
-            targetResidualScore: parseInt(document.getElementById('riskTargetRes').value),
-            targetClosureDate: document.getElementById('riskTargetDate').value,
-            riskAccepted: document.getElementById('riskAccepted').value,
-            acceptedBy: document.getElementById('riskAcceptedBy').value
-        };
-        if(currentEditId) {
-            const idx = data.risks.findIndex(r=>r.id===currentEditId);
-            if(idx!==-1) data.risks[idx] = newRisk;
-        } else data.risks.push(newRisk);
-    } else if(currentModalType === 'control') {
-        const newControl = {
-            id: document.getElementById('ctrlId').value,
-            name: document.getElementById('ctrlName').value,
-            type: document.getElementById('ctrlType').value,
-            effectiveness: parseInt(document.getElementById('ctrlEff').value),
-            owner: document.getElementById('ctrlOwner').value,
-            lastTested: document.getElementById('ctrlLastTested').value,
-            linkedControls: document.getElementById('ctrlLinked').value,
-            controlCount: parseInt(document.getElementById('ctrlCount').value),
-            controlStatus: document.getElementById('ctrlStatus').value
-        };
-        if(currentEditId) {
-            const idx = data.controls.findIndex(c=>c.id===currentEditId);
-            if(idx!==-1) data.controls[idx] = newControl;
-        } else data.controls.push(newControl);
-    } else if(currentModalType === 'asset') {
-        const newAsset = {
-            id: document.getElementById('assetId').value,
-            name: document.getElementById('assetName').value,
-            type: document.getElementById('assetType').value,
-            criticality: document.getElementById('assetCrit').value,
-            owner: document.getElementById('assetOwner').value,
-            location: document.getElementById('assetLoc').value,
-            riskIds: document.getElementById('assetRisks').value.split(',').map(s=>s.trim()).filter(Boolean)
-        };
-        if(currentEditId) {
-            const idx = data.assets.findIndex(a=>a.id===currentEditId);
-            if(idx!==-1) data.assets[idx] = newAsset;
-        } else data.assets.push(newAsset);
-    } else if(currentModalType === 'process') {
-        const newProc = {
-            id: document.getElementById('procId').value,
-            name: document.getElementById('procName').value,
-            owner: document.getElementById('procOwner').value,
-            assets: document.getElementById('procAssets').value.split(',').map(s=>s.trim()).filter(Boolean),
-            risks: document.getElementById('procRisks').value.split(',').map(s=>s.trim()).filter(Boolean)
-        };
-        if(currentEditId) {
-            const idx = data.processes.findIndex(p=>p.id===currentEditId);
-            if(idx!==-1) data.processes[idx] = newProc;
-        } else data.processes.push(newProc);
-    } else if(currentModalType === 'orgUnit') {
-        const newUnit = {
-            id: document.getElementById('unitId').value,
-            name: document.getElementById('unitName').value,
-            type: document.getElementById('unitType').value
-        };
-        if(currentEditId) {
-            const idx = data.orgUnits.findIndex(u=>u.id===currentEditId);
-            if(idx!==-1) data.orgUnits[idx] = newUnit;
-        } else data.orgUnits.push(newUnit);
-    } else if(currentModalType === 'actionPlan') {
-        const newAction = {
-            id: document.getElementById('actId').value,
-            title: document.getElementById('actTitle').value,
-            owner: document.getElementById('actOwner').value,
-            dueDate: document.getElementById('actDue').value,
-            progress: parseInt(document.getElementById('actProgress').value),
-            status: document.getElementById('actStatus').value,
-            riskId: document.getElementById('actRiskId').value
-        };
-        if(currentEditId) {
-            const idx = data.actionPlans.findIndex(a=>a.id===currentEditId);
-            if(idx!==-1) data.actionPlans[idx] = newAction;
-        } else data.actionPlans.push(newAction);
-    } else if(currentModalType === 'issue') {
-        const newIssue = {
-            id: document.getElementById('issueId').value,
-            title: document.getElementById('issueTitle').value,
-            source: document.getElementById('issueSource').value,
-            priority: document.getElementById('issuePriority').value,
-            owner: document.getElementById('issueOwner').value,
-            dueDate: document.getElementById('issueDue').value,
-            status: document.getElementById('issueStatus').value,
-            riskId: ""
-        };
-        if(currentEditId) {
-            const idx = data.issues.findIndex(i=>i.id===currentEditId);
-            if(idx!==-1) data.issues[idx] = newIssue;
-        } else data.issues.push(newIssue);
-    } else if(currentModalType === 'incident') {
-        const newInc = {
-            id: document.getElementById('incId').value,
-            title: document.getElementById('incTitle').value,
-            type: document.getElementById('incType').value,
-            date: document.getElementById('incDate').value,
-            status: document.getElementById('incStatus').value,
-            riskId: document.getElementById('incRiskId').value
-        };
-        if(currentEditId) {
-            const idx = data.incidents.findIndex(i=>i.id===currentEditId);
-            if(idx!==-1) data.incidents[idx] = newInc;
-        } else data.incidents.push(newInc);
-    } else if(currentModalType === 'vendor') {
-        const newVendor = {
-            id: document.getElementById('venId').value,
-            name: document.getElementById('venName').value,
-            service: document.getElementById('venService').value,
-            criticality: document.getElementById('venCrit').value,
-            contractExpiry: document.getElementById('venExpiry').value,
-            score: parseInt(document.getElementById('venScore').value)
-        };
-        if(currentEditId) {
-            const idx = data.vendors.findIndex(v=>v.id===currentEditId);
-            if(idx!==-1) data.vendors[idx] = newVendor;
-        } else data.vendors.push(newVendor);
-    } else if(currentModalType === 'compliance') {
-        const newComp = {
-            framework: document.getElementById('compFw').value,
-            requirement: document.getElementById('compReq').value,
-            status: document.getElementById('compStatus').value,
-            progress: parseInt(document.getElementById('compProg').value),
-            owner: document.getElementById('compOwner').value,
-            dueDate: document.getElementById('compDue').value,
-            mappedControls: []
-        };
-        // Check if exists
-        const existing = data.compliance.find(c=>c.framework===newComp.framework && c.requirement===newComp.requirement);
-        if(existing) {
-            Object.assign(existing, newComp);
-        } else {
-            data.compliance.push(newComp);
-        }
-    } else if(currentModalType === 'auditFinding') {
-        const newFinding = {
-            id: document.getElementById('auditId').value,
-            title: document.getElementById('auditTitle').value,
-            severity: document.getElementById('auditSev').value,
-            auditType: document.getElementById('auditType').value,
-            status: document.getElementById('auditStatus').value,
-            dueDate: document.getElementById('auditDue').value
-        };
-        if(currentEditId) {
-            const idx = data.auditFindings.findIndex(f=>f.id===currentEditId);
-            if(idx!==-1) data.auditFindings[idx] = newFinding;
-        } else data.auditFindings.push(newFinding);
-    } else if(currentModalType === 'evidence') {
-        const newEv = {
-            id: document.getElementById('evId').value,
-            name: document.getElementById('evName').value,
-            type: document.getElementById('evType').value,
-            linkedTo: document.getElementById('evLink').value,
-            uploadDate: document.getElementById('evDate').value
-        };
-        if(currentEditId) {
-            const idx = data.evidence.findIndex(e=>e.id===currentEditId);
-            if(idx!==-1) data.evidence[idx] = newEv;
-        } else data.evidence.push(newEv);
-    } else if(currentModalType === 'workflow') {
-        const newWf = {
-            id: `WF-${data.workflows.length+1}`,
-            itemType: document.getElementById('wfType').value,
-            itemName: document.getElementById('wfName').value,
-            requestor: document.getElementById('wfRequestor').value,
-            status: 'pending'
-        };
-        data.workflows.push(newWf);
-    }
-    saveData();
-    closeModal();
-    toast('Saved');
-    renderCurrentPage();
-};
-
-// ======================== NAVIGATION ========================
-let currentPage = "dashboard";
-const modulesList = [
-    "dashboard", "riskRegister", "riskAssessment", "controls",
-    "assets", "processes", "orgUnits", "actionPlans",
-    "issues", "incidents", "vendors", "compliance",
-    "auditFindings", "evidence", "kris", "workflow",
-    "auditTrail", "reports", "security"
-];
-const moduleLabels = {
-    dashboard: "📊 Dashboard", riskRegister: "📋 Risk Register", riskAssessment: "📝 Risk Assessment & Treatment", controls: "🔒 Controls",
-    assets: "🏷️ Asset Inventory", processes: "🔁 Business Processes", orgUnits: "🏢 Org Structure", actionPlans: "✅ Action Plans",
-    issues: "❗ Issues", incidents: "🚨 Incidents", vendors: "🏭 Vendor Risk", compliance: "📜 Compliance",
-    auditFindings: "🔍 Audit Findings", evidence: "📎 Evidence", kris: "📈 KRIs", workflow: "🔄 Workflow",
-    auditTrail: "📜 Audit Trail", reports: "📑 Reports", security: "🔐 Security"
-};
-function renderCurrentPage() {
-    switch(currentPage) {
-        case "dashboard": renderDashboard(); break;
-        case "riskRegister": renderRiskRegister(); break;
-        case "riskAssessment": renderRiskAssessment(); break;
-        case "controls": renderControls(); break;
-        case "assets": renderAssets(); break;
-        case "processes": renderProcesses(); break;
-        case "orgUnits": renderOrgUnits(); break;
-        case "actionPlans": renderActionPlans(); break;
-        case "issues": renderIssues(); break;
-        case "incidents": renderIncidents(); break;
-        case "vendors": renderVendors(); break;
-        case "compliance": renderCompliance(); break;
-        case "auditFindings": renderAuditFindings(); break;
-        case "evidence": renderEvidence(); break;
-        case "kris": renderKRIs(); break;
-        case "workflow": renderWorkflow(); break;
-        case "auditTrail": renderAuditTrail(); break;
-        case "reports": renderReports(); break;
-        case "security": renderSecurity(); break;
-        default: renderDashboard();
-    }
-}
-function initApp() {
-    const navContainer = document.getElementById('navContainer');
-    navContainer.innerHTML = '';
-    modulesList.forEach(page => {
-        const btn = document.createElement('button');
-        btn.className = 'nav-item' + (page === currentPage ? ' active' : '');
-        btn.innerText = moduleLabels[page];
-        btn.onclick = () => {
-            document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-            btn.classList.add('active');
-            currentPage = page;
-            renderCurrentPage();
-        };
-        navContainer.appendChild(btn);
-    });
-    renderCurrentPage();
-}
-checkLogin();
+const STORE_KEY='grc_data_v3';
+let data=JSON.parse(localStorage.getItem(STORE_KEY)||'null')||{risks:[{id:'RSK-001',name:'Data breach via phishing',category:'Technology',likelihood:4,impact:5,owner:'Ahmed Al-Rashid',status:'Open',description:'Employees may fall victim to phishing attacks.',treatment:'Mitigate'},{id:'RSK-002',name:'Vendor SLA non-compliance',category:'Operational',likelihood:3,impact:4,owner:'Sara Mohammed',status:'In Progress',description:'Key vendors failing to meet SLAs.',treatment:'Transfer'},{id:'RSK-003',name:'Regulatory fine - GDPR',category:'Compliance',likelihood:2,impact:5,owner:'Khalid Hassan',status:'Open',description:'Non-compliance with GDPR data retention.',treatment:'Mitigate'},{id:'RSK-004',name:'Cloud outage - AWS region',category:'Technology',likelihood:2,impact:4,owner:'Priya Nair',status:'Open',description:'Critical workloads in single AWS region.',treatment:'Mitigate'},{id:'RSK-005',name:'Key person dependency',category:'Strategic',likelihood:3,impact:3,owner:'Marcus Webb',status:'Open',description:'Core processes depend on 2-3 individuals.',treatment:'Accept'},{id:'RSK-006',name:'Budget overrun - IT projects',category:'Financial',likelihood:3,impact:3,owner:'Ahmed Al-Rashid',status:'Closed',description:'IT projects historically overspend.',treatment:'Mitigate'}],controls:[{id:'CTL-001',name:'Role-based access control (RBAC)',type:'Preventive',effectiveness:88,owner:'Priya Nair',lastTested:'2026-05-12',mitigates:['RSK-001','RSK-006']},{id:'CTL-002',name:'Vendor security assessments',type:'Detective',effectiveness:54,owner:'Marcus Webb',lastTested:'2026-03-02',mitigates:['RSK-002']},{id:'CTL-003',name:'Encrypted offsite backups',type:'Corrective',effectiveness:91,owner:'Sara Mohammed',lastTested:'2026-05-28',mitigates:['RSK-004']},{id:'CTL-004',name:'Privileged access monitoring',type:'Detective',effectiveness:67,owner:'Khalid Hassan',lastTested:'2026-04-15',mitigates:['RSK-001']},{id:'CTL-005',name:'Security awareness training',type:'Preventive',effectiveness:72,owner:'Ahmed Al-Rashid',lastTested:'2026-02-10',mitigates:['RSK-001']}],compliance:[{framework:'ISO 27001',requirement:'Access Control Policy',status:'Compliant',owner:'Priya Nair',dueDate:'2026-12-31',progress:100},{framework:'GDPR',requirement:'Data Retention Schedule',status:'Non-Compliant',owner:'Khalid Hassan',dueDate:'2026-07-15',progress:35},{framework:'SOC 2',requirement:'Incident Response Plan',status:'Partial',owner:'Sara Mohammed',dueDate:'2026-09-30',progress:60},{framework:'ISO 27001',requirement:'Risk Assessment Process',status:'Compliant',owner:'Marcus Webb',dueDate:'2026-12-31',progress:100},{framework:'NIST CSF',requirement:'Asset Inventory',status:'Partial',owner:'Ahmed Al-Rashid',dueDate:'2026-08-01',progress:75}],issues:[{id:'ISS-001',issue:'Phishing simulation failure rate >30%',linkedRisk:'RSK-001',priority:'High',owner:'Ahmed Al-Rashid',dueDate:'2026-07-01',status:'Open'},{id:'ISS-002',issue:'Vendor contract review overdue',linkedRisk:'RSK-002',priority:'Medium',owner:'Marcus Webb',dueDate:'2026-06-30',status:'In Progress'},{id:'ISS-003',issue:'GDPR consent forms not updated',linkedRisk:'RSK-003',priority:'Critical',owner:'Khalid Hassan',dueDate:'2026-06-15',status:'Open'},{id:'ISS-004',issue:'DR failover test not completed',linkedRisk:'RSK-004',priority:'High',owner:'Priya Nair',dueDate:'2026-07-31',status:'Open'}],policies:[{id:'POL-001',title:'Information Security Policy',category:'Information Security',status:'Active',owner:'Priya Nair',version:'2.1',reviewDate:'2026-12-31',framework:'ISO 27001',description:'Defines the approach to protecting information assets.'},{id:'POL-002',title:'Data Privacy & GDPR Policy',category:'Data Privacy',status:'Under Review',owner:'Khalid Hassan',version:'1.3',reviewDate:'2026-07-01',framework:'GDPR',description:'Governs collection and processing of personal data.'},{id:'POL-003',title:'Acceptable Use Policy',category:'IT & Technology',status:'Active',owner:'Ahmed Al-Rashid',version:'3.0',reviewDate:'2026-11-30',framework:'ISO 27001',description:'Rules for acceptable use of company IT systems.'},{id:'POL-004',title:'Business Continuity Plan',category:'Operational',status:'Draft',owner:'Sara Mohammed',version:'0.9',reviewDate:'2026-09-15',framework:'ISO 22301',description:'Procedures to ensure critical functions continue during disaster.'},{id:'POL-005',title:'Vendor Management Policy',category:'Operational',status:'Active',owner:'Marcus Webb',version:'1.1',reviewDate:'2026-10-31',framework:'SOC 2',description:'Standards for onboarding and managing third-party vendors.'}],emailConfig:{pubKey:'',serviceId:'',templateId:'',email:''},alertPrefs:{critical:true,high:true,overdue:true,policy:true,compliance:false}};
+function save(){localStorage.setItem(STORE_KEY,JSON.stringify(data));}
+function severity(s){if(s>=16)return'Critical';if(s>=9)return'High';if(s>=4)return'Medium';return'Low';}
+function sevClass(s){return'badge-'+s.toLowerCase();}
+function sc(r){return r.likelihood*r.impact;}
+function initials(n){return n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();}
+function scoreColor(s){if(s>=16)return'rgba(239,68,68,.25)';if(s>=9)return'rgba(245,158,11,.25)';if(s>=4)return'rgba(59,130,246,.2)';return'rgba(34,197,94,.15)';}
+function daysUntil(d){return Math.ceil((new Date(d)-new Date())/(1000*60*60*24));}
+let modalType='',editId=null,editIdx=null;
+function toast(msg,type='success'){const t=document.getElementById('toast'),dot=document.getElementById('toast-dot');document.getElementById('toast-msg').textContent=msg;dot.style.background=type==='error'?'var(--red)':type==='warn'?'var(--amber)':'var(--teal)';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+function showPage(name,el){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));document.getElementById('page-'+name).classList.add('active');if(el)el.classList.add('active');const map={dashboard:renderDashboard,risks:renderRisks,heatmap:renderHeatmap,controls:renderControls,policies:renderPolicies,compliance:renderCompliance,issues:renderIssues,email:renderEmail};map[name]&&map[name]();}
+function renderDashboard(){const open=data.risks.filter(r=>r.status!=='Closed');const crit=open.filter(r=>severity(sc(r))==='Critical');document.getElementById('stat-grid').innerHTML=`<div class="stat-card"><div class="stat-top"><span class="stat-label">Total Risks</span><div class="stat-icon" style="background:#1e1a3a">🔢</div></div><div class="stat-value" style="color:var(--purple)">${data.risks.length}</div><div class="stat-sub">${open.length} open</div></div><div class="stat-card"><div class="stat-top"><span class="stat-label">Critical Risks</span><div class="stat-icon" style="background:var(--red-bg)">🔴</div></div><div class="stat-value" style="color:var(--red)">${crit.length}</div><div class="stat-sub">Immediate action needed</div></div><div class="stat-card"><div class="stat-top"><span class="stat-label">Active Policies</span><div class="stat-icon" style="background:var(--teal-bg)">📋</div></div><div class="stat-value" style="color:var(--teal)">${data.policies.filter(p=>p.status==='Active').length}</div><div class="stat-sub">${data.policies.filter(p=>p.status==='Draft').length} in draft</div></div><div class="stat-card"><div class="stat-top"><span class="stat-label">Open Issues</span><div class="stat-icon" style="background:var(--blue-bg)">⚠️</div></div><div class="stat-value" style="color:var(--blue)">${data.issues.filter(i=>i.status!=='Closed').length}</div><div class="stat-sub">${data.issues.filter(i=>i.priority==='Critical'&&i.status!=='Closed').length} critical</div></div>`;
+const avgEff=data.controls.length?Math.round(data.controls.reduce((a,c)=>a+c.effectiveness,0)/data.controls.length):0;const compRate=data.compliance.length?Math.round(data.compliance.filter(c=>c.status==='Compliant').length/data.compliance.length*100):0;const closeRate=data.risks.length?Math.round(data.risks.filter(r=>r.status==='Closed').length/data.risks.length*100):0;
+document.getElementById('kri-grid').innerHTML=`<div class="kri-card"><div class="kri-title">Control effectiveness</div><div class="kri-value" style="color:${avgEff>=70?'var(--teal)':avgEff>=50?'var(--amber)':'var(--red)'}">${avgEff}%</div><div class="kri-bar-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${avgEff}%;background:${avgEff>=70?'var(--teal)':avgEff>=50?'var(--amber)':'var(--red)'}"></div></div></div><div class="kri-threshold">Target: >=70%</div></div><div class="kri-card"><div class="kri-title">Compliance rate</div><div class="kri-value" style="color:${compRate>=80?'var(--teal)':compRate>=60?'var(--amber)':'var(--red)'}">${compRate}%</div><div class="kri-bar-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${compRate}%;background:${compRate>=80?'var(--teal)':compRate>=60?'var(--amber)':'var(--red)'}"></div></div></div><div class="kri-threshold">Target: >=80%</div></div><div class="kri-card"><div class="kri-title">Risk closure rate</div><div class="kri-value" style="color:var(--purple)">${closeRate}%</div><div class="kri-bar-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${closeRate}%;background:var(--purple)"></div></div></div><div class="kri-threshold">Risks closed vs total</div></div>`;
+const top=[...data.risks].sort((a,b)=>sc(b)-sc(a)).slice(0,5);document.getElementById('top-risks-table').innerHTML=top.map(r=>`<tr><td><b>${r.id}</b></td><td>${r.name}</td><td>${r.category}</td><td><div class="risk-score" style="background:${scoreColor(sc(r))}">${sc(r)}</div></td><td><span class="badge ${sevClass(severity(sc(r)))}">${severity(sc(r))}</span></td><td><span class="avatar">${initials(r.owner)}</span>${r.owner.split(' ')[0]}</td><td><span class="badge badge-${r.status==='Open'?'open':r.status==='In Progress'?'progress':'closed'}">${r.status}</span></td></tr>`).join('');updateBadge();}
+function renderRisks(list){list=list||data.risks;document.getElementById('risk-table').innerHTML=list.length?list.map(r=>`<tr><td><b>${r.id}</b></td><td>${r.name}</td><td>${r.category}</td><td>${r.likelihood}/5</td><td>${r.impact}/5</td><td><div class="risk-score" style="background:${scoreColor(sc(r))}">${sc(r)}</div></td><td><span class="badge ${sevClass(severity(sc(r)))}">${severity(sc(r))}</span></td><td><span class="avatar">${initials(r.owner)}</span>${r.owner.split(' ')[0]}</td><td><span class="badge badge-${r.status==='Open'?'open':r.status==='In Progress'?'progress':'closed'}">${r.status}</span></td><td style="white-space:nowrap"><button class="btn btn-ghost" style="padding:4px 10px;font-size:11px" onclick="openModal('risk',data.risks.find(x=>x.id==='${r.id}'))">Edit</button> <button class="btn btn-danger" style="padding:4px 10px;font-size:11px" onclick="deleteItem('risks','${r.id}')">Del</button></td></tr>`).join(''):`<tr><td colspan="10"><div class="empty"><div class="empty-icon">🛡️</div><div class="empty-text">No risks found.</div></div></td></tr>`;updateBadge();}
+function filterRisks(){const q=document.getElementById('risk-search').value.toLowerCase();const cat=document.getElementById('risk-filter-cat').value;const sev=document.getElementById('risk-filter-sev').value;renderRisks(data.risks.filter(r=>(!q||r.name.toLowerCase().includes(q)||r.id.toLowerCase().includes(q))&&(!cat||r.category===cat)&&(!sev||severity(sc(r))===sev)));}
+function deleteItem(type,id){if(!confirm('Delete?'))return;data[type]=data[type].filter(x=>x.id!==id);save();const map={risks:renderRisks,controls:renderControls,issues:renderIssues,policies:renderPolicies};map[type]&&map[type]();toast('Deleted');}
+function updateBadge(){document.getElementById('risk-badge').textContent=data.risks.filter(r=>r.status!=='Closed').length;}
+function renderHeatmap(){const labels=['Very Low','Low','Medium','High','Very High'];let html='';for(let imp=5;imp>=1;imp--){html+=`<div class="hm-label" style="font-size:9px;text-align:right;padding-right:4px">${labels[imp-1]}</div>`;for(let lik=1;lik<=5;lik++){const s=lik*imp,sev=severity(s),risks=data.risks.filter(r=>r.likelihood===lik&&r.impact===imp);const cls=sev==='Critical'?'hm-critical':sev==='High'?'hm-high':sev==='Medium'?'hm-medium':'hm-low';html+=`<div class="hm-cell ${cls}" onclick="showHeatmapRisks(${lik},${imp})" title="L${lik}xI${imp}=${s}">${risks.length||''}</div>`;}}html+='<div></div>';labels.forEach(l=>html+=`<div class="hm-label" style="font-size:9px;text-align:center">${l}</div>`);document.getElementById('heatmap-container').innerHTML=`<div style="margin-bottom:8px;font-size:11px;color:var(--text3)">Up Impact</div><div class="heatmap-grid">${html}</div><div style="margin-top:6px;font-size:11px;color:var(--text3)">Likelihood</div>`;}
+function showHeatmapRisks(lik,imp){const risks=data.risks.filter(r=>r.likelihood===lik&&r.impact===imp);const sec=document.getElementById('heatmap-risks-section');if(!risks.length){sec.style.display='none';return;}document.getElementById('heatmap-risks-title').textContent=`Risks at L${lik}xI${imp} (${risks.length})`;document.getElementById('heatmap-risks-table').innerHTML=risks.map(r=>`<tr><td><b>${r.id}</b></td><td>${r.name}</td><td>${r.owner}</td><td><span class="badge badge-${r.status==='Open'?'open':r.status==='In Progress'?'progress':'closed'}">${r.status}</span></td></tr>`).join('');sec.style.display='block';}
+function renderControls(){const eff=e=>e>=70?'effective':e>=40?'partial':'ineffective';const counts={effective:0,partial:0,ineffective:0};data.controls.forEach(c=>counts[eff(c.effectiveness)]++);document.getElementById('control-stats').innerHTML=`<div class="stat-card"><div class="stat-top"><span class="stat-label">Effective</span><div class="stat-icon" style="background:var(--teal-bg)">✅</div></div><div class="stat-value" style="color:var(--teal)">${counts.effective}</div></div><div class="stat-card"><div class="stat-top"><span class="stat-label">Partially Effective</span><div class="stat-icon" style="background:var(--amber-bg)">⚠️</div></div><div class="stat-value" style="color:var(--amber)">${counts.partial}</div></div><div class="stat-card"><div class="stat-top"><span class="stat-label">Ineffective</span><div class="stat-icon" style="background:var(--red-bg)">❌</div></div><div class="stat-value" style="color:var(--red)">${counts.ineffective}</div></div><div class="stat-card"><div class="stat-top"><span class="stat-label">Total</span><div class="stat-icon" style="background:#1e1a3a">🛡️</div></div><div class="stat-value" style="color:var(--purple)">${data.controls.length}</div></div>`;document.getElementById('controls-table').innerHTML=data.controls.map(c=>`<tr><td><b>${c.id}</b></td><td>${c.name}</td><td>${c.type}</td><td><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${c.effectiveness}%;background:${c.effectiveness>=70?'var(--teal)':c.effectiveness>=40?'var(--amber)':'var(--red)'}"></div></div><span style="font-size:11px;min-width:34px">${c.effectiveness}%</span></div></td><td><span class="avatar">${initials(c.owner)}</span>${c.owner.split(' ')[0]}</td><td style="font-size:12px;color:var(--text3)">${c.lastTested}</td><td>${c.mitigates.map(m=>`<span class="badge badge-medium" style="margin-right:3px">${m}</span>`).join('')}</td><td style="white-space:nowrap"><button class="btn btn-ghost" style="padding:4px 10px;font-size:11px" onclick="openModal('control',data.controls.find(x=>x.id==='${c.id}'))">Edit</button> <button class="btn btn-danger" style="padding:4px 10px;font-size:11px" onclick="deleteItem('controls','${c.id}')">Del</button></td></tr>`).join('');}
+function renderPolicies(list){list=list||data.policies;const counts={Active:0,Draft:0,'Under Review':0,Expired:0};data.policies.forEach(p=>counts[p.status]=(counts[p.status]||0)+1);document.getElementById('policy-stats').innerHTML=`<div class="stat-card"><div class="stat-top"><span class="stat-label">Active</span><div class="stat-icon" style="background:var(--teal-bg)">✅</div></div><div class="stat-value" style="color:var(--teal)">${counts.Active||0}</div></div><div class="stat-card"><div class="stat-top"><span class="stat-label">Draft</span><div class="stat-icon" style="background:var(--bg3)">📝</div></div><div class="stat-value" style="color:var(--text2)">${counts.Draft||0}</div></div><div class="stat-card"><div class="stat-top"><span class="stat-label">Under Review</span><div class="stat-icon" style="background:var(--amber-bg)">🔍</div></div><div class="stat-value" style="color:var(--amber)">${counts['Under Review']||0}</div></div><div class="stat-card"><div class="stat-top"><span class="stat-label">Expired</span><div class="stat-icon" style="background:var(--red-bg)">⏰</div></div><div class="stat-value" style="color:var(--red)">${counts.Expired||0}</div></div>`;if(!list.length){document.getElementById('policy-grid').innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📋</div><div class="empty-text">No policies found.</div></div>`;return;}document.getElementById('policy-grid').innerHTML=list.map(p=>{const days=p.reviewDate?daysUntil(p.reviewDate):null;const due=days!==null&&days<=30?`<span style="color:var(--amber);font-size:11px">Review in ${days}d</span>`:'';return`<div class="policy-card"><div class="policy-card-top"><div class="policy-card-title">${p.title}</div><span class="badge badge-${p.status==='Active'?'active':p.status==='Draft'?'draft':p.status==='Under Review'?'review':'expired'}">${p.status}</span></div><div class="policy-card-meta"><b>ID:</b> ${p.id} &nbsp;·&nbsp; <b>v${p.version}</b><br><b>Category:</b> ${p.category}<br><b>Framework:</b> ${p.framework}<br><b>Owner:</b> ${p.owner}<br><b>Review:</b> ${p.reviewDate||'—'} ${due}</div><div style="font-size:12px;color:var(--text3);margin-bottom:10px">${p.description}</div><div class="policy-card-actions"><button class="btn btn-ghost" style="padding:4px 10px;font-size:11px" onclick="openModal('policy',data.policies.find(x=>x.id==='${p.id}'))">Edit</button><button class="btn btn-danger" style="padding:4px 10px;font-size:11px" onclick="deleteItem('policies','${p.id}')">Delete</button></div></div>`;}).join('');}
+function filterPolicies(){const q=document.getElementById('policy-search').value.toLowerCase();const st=document.getElementById('policy-filter-status').value;const cat=document.getElementById('policy-filter-cat').value;renderPolicies(data.policies.filter(p=>(!q||p.title.toLowerCase().includes(q)||p.id.toLowerCase().includes(q))&&(!st||p.status===st)&&(!cat||p.category===cat)));}
+function renderCompliance(){document.getElementById('compliance-table').innerHTML=data.compliance.map((c,i)=>`<tr><td><b>${c.framework}</b></td><td>${c.requirement}</td><td><span class="badge ${c.status==='Compliant'?'badge-compliant':c.status==='Non-Compliant'?'badge-noncompliant':'badge-partial-c'}">${c.status}</span></td><td><span class="avatar">${initials(c.owner)}</span>${c.owner.split(' ')[0]}</td><td style="font-size:12px;color:var(--text3)">${c.dueDate}</td><td><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${c.progress}%;background:${c.progress>=80?'var(--teal)':c.progress>=50?'var(--amber)':'var(--red)'}"></div></div><span style="font-size:11px;min-width:34px">${c.progress}%</span></div></td><td style="white-space:nowrap"><button class="btn btn-ghost" style="padding:4px 10px;font-size:11px" onclick="openModal('compliance',data.compliance[${i}],${i})">Edit</button> <button class="btn btn-danger" style="padding:4px 10px;font-size:11px" onclick="deleteCompliance(${i})">Del</button></td></tr>`).join('');}
+function deleteCompliance(i){if(!confirm('Delete?'))return;data.compliance.splice(i,1);save();renderCompliance();toast('Deleted');}
+function renderIssues(){document.getElementById('issues-table').innerHTML=data.issues.map(iss=>`<tr><td><b>${iss.id}</b></td><td>${iss.issue}</td><td><span class="badge badge-medium">${iss.linkedRisk}</span></td><td><span class="badge ${sevClass(iss.priority)}">${iss.priority}</span></td><td><span class="avatar">${initials(iss.owner)}</span>${iss.owner.split(' ')[0]}</td><td style="font-size:12px;color:var(--text3)">${iss.dueDate}</td><td><span class="badge badge-${iss.status==='Open'?'open':iss.status==='In Progress'?'progress':'closed'}">${iss.status}</span></td><td style="white-space:nowrap"><button class="btn btn-ghost" style="padding:4px 10px;font-size:11px" onclick="openModal('issue',data.issues.find(x=>x.id==='${iss.id}'))">Edit</button> <button class="btn btn-danger" style="padding:4px 10px;font-size:11px" onclick="deleteItem('issues','${iss.id}')">Del</button></td></tr>`).join('');}
+function renderEmail(){const c=data.emailConfig;if(c.pubKey)document.getElementById('ejs-pubkey').value=c.pubKey;if(c.serviceId)document.getElementById('ejs-service').value=c.serviceId;if(c.templateId)document.getElementById('ejs-template').value=c.templateId;if(c.email)document.getElementById('ejs-email').value=c.email;const p=data.alertPrefs;document.getElementById('alert-critical').checked=p.critical;document.getElementById('alert-high').checked=p.high;document.getElementById('alert-overdue').checked=p.overdue;document.getElementById('alert-policy').checked=p.policy;document.getElementById('alert-compliance').checked=p.compliance;}
+function saveEmailConfig(){data.emailConfig={pubKey:document.getElementById('ejs-pubkey').value,serviceId:document.getElementById('ejs-service').value,templateId:document.getElementById('ejs-template').value,email:document.getElementById('ejs-email').value};save();toast('Email config saved');}
+function saveAlertPrefs(){data.alertPrefs={critical:document.getElementById('alert-critical').checked,high:document.getElementById('alert-high').checked,overdue:document.getElementById('alert-overdue').checked,policy:document.getElementById('alert-policy').checked,compliance:document.getElementById('alert-compliance').checked};save();toast('Preferences saved');}
+function testEmail(){const c=data.emailConfig;if(!c.pubKey||!c.serviceId||!c.templateId||!c.email){toast('Fill in all EmailJS fields first','warn');return;}emailjs.init(c.pubKey);emailjs.send(c.serviceId,c.templateId,{to_email:c.email,subject:'GRC-Control: Test Alert',message:'Your email alerts are working!'}).then(()=>toast('Test email sent!')).catch(e=>toast('Failed: '+e.text,'error'));}
+function sendAlert(subject,message){const c=data.emailConfig;if(!c.pubKey||!c.serviceId||!c.templateId||!c.email)return;emailjs.init(c.pubKey);emailjs.send(c.serviceId,c.templateId,{to_email:c.email,subject,message}).catch(()=>{});}
+function openModal(type,item,idx){modalType=type;editId=item?.id||null;editIdx=idx!==undefined?idx:null;const forms={risk:`<div class="form-row"><div class="form-group"><label>Risk Name *</label><input id="f-name" value="${item?.name||''}" placeholder="Describe the risk"/></div><div class="form-group"><label>Category</label><select id="f-cat"><option>Operational</option><option>Financial</option><option>Strategic</option><option>Compliance</option><option>Technology</option><option>Reputational</option></select></div></div><div class="form-group"><label>Description</label><textarea id="f-desc">${item?.description||''}</textarea></div><div class="form-row"><div class="form-group"><label>Likelihood (1-5)</label><input id="f-lik" type="number" min="1" max="5" value="${item?.likelihood||3}"/></div><div class="form-group"><label>Impact (1-5)</label><input id="f-imp" type="number" min="1" max="5" value="${item?.impact||3}"/></div></div><div class="form-row"><div class="form-group"><label>Owner</label><input id="f-owner" value="${item?.owner||''}" placeholder="Full name"/></div><div class="form-group"><label>Status</label><select id="f-status"><option>Open</option><option>In Progress</option><option>Closed</option></select></div></div><div class="form-group"><label>Treatment</label><select id="f-treat"><option>Mitigate</option><option>Accept</option><option>Transfer</option><option>Avoid</option></select></div>`,control:`<div class="form-row"><div class="form-group"><label>Control Name *</label><input id="f-name" value="${item?.name||''}"/></div><div class="form-group"><label>Type</label><select id="f-type"><option>Preventive</option><option>Detective</option><option>Corrective</option></select></div></div><div class="form-row"><div class="form-group"><label>Effectiveness (%)</label><input id="f-eff" type="number" min="0" max="100" value="${item?.effectiveness||50}"/></div><div class="form-group"><label>Owner</label><input id="f-owner" value="${item?.owner||''}"/></div></div><div class="form-row"><div class="form-group"><label>Last Tested</label><input id="f-tested" type="date" value="${item?.lastTested||''}"/></div><div class="form-group"><label>Mitigates (comma IDs)</label><input id="f-mit" value="${item?.mitigates?.join(',')||''}"/></div></div>`,policy:`<div class="form-row"><div class="form-group"><label>Policy Title *</label><input id="f-name" value="${item?.title||''}" placeholder="e.g. Information Security Policy"/></div><div class="form-group"><label>Category</label><select id="f-pcat"><option>Information Security</option><option>Data Privacy</option><option>Operational</option><option>HR & Conduct</option><option>Financial</option><option>IT & Technology</option></select></div></div><div class="form-group"><label>Description</label><textarea id="f-desc">${item?.description||''}</textarea></div><div class="form-row"><div class="form-group"><label>Owner</label><input id="f-owner" value="${item?.owner||''}"/></div><div class="form-group"><label>Status</label><select id="f-pstatus"><option>Active</option><option>Draft</option><option>Under Review</option><option>Expired</option></select></div></div><div class="form-row"><div class="form-group"><label>Version</label><input id="f-ver" value="${item?.version||'1.0'}"/></div><div class="form-group"><label>Review Date</label><input id="f-review" type="date" value="${item?.reviewDate||''}"/></div></div><div class="form-group"><label>Framework</label><select id="f-fw"><option>ISO 27001</option><option>SOC 2</option><option>GDPR</option><option>NIST CSF</option><option>PCI DSS</option><option>ISO 31000</option><option>ISO 22301</option><option>Other</option></select></div>`,compliance:`<div class="form-row"><div class="form-group"><label>Framework</label><select id="f-fw"><option>ISO 27001</option><option>SOC 2</option><option>GDPR</option><option>NIST CSF</option><option>PCI DSS</option><option>ISO 31000</option></select></div><div class="form-group"><label>Status</label><select id="f-status"><option>Compliant</option><option>Non-Compliant</option><option>Partial</option></select></div></div><div class="form-group"><label>Requirement *</label><input id="f-req" value="${item?.requirement||''}"/></div><div class="form-row"><div class="form-group"><label>Owner</label><input id="f-owner" value="${item?.owner||''}"/></div><div class="form-group"><label>Due Date</label><input id="f-due" type="date" value="${item?.dueDate||''}"/></div></div><div class="form-group"><label>Progress (%)</label><input id="f-prog" type="number" min="0" max="100" value="${item?.progress||0}"/></div>`,issue:`<div class="form-group"><label>Issue Description *</label><input id="f-iss" value="${item?.issue||''}"/></div><div class="form-row"><div class="form-group"><label>Linked Risk ID</label><input id="f-risk" value="${item?.linkedRisk||''}" placeholder="RSK-001"/></div><div class="form-group"><label>Priority</label><select id="f-pri"><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select></div></div><div class="form-row"><div class="form-group"><label>Owner</label><input id="f-owner" value="${item?.owner||''}"/></div><div class="form-group"><label>Due Date</label><input id="f-due" type="date" value="${item?.dueDate||''}"/></div></div><div class="form-group"><label>Status</label><select id="f-st"><option>Open</option><option>In Progress</option><option>Closed</option></select></div>`};
+document.getElementById('modal-title').textContent=(item?'Edit ':'Add ')+{risk:'Risk',control:'Control',policy:'Policy',compliance:'Compliance Item',issue:'Issue'}[type];document.getElementById('modal-body').innerHTML=forms[type];document.getElementById('modal').style.display='flex';
+setTimeout(()=>{if(item){if(type==='risk'){sv('f-cat',item.category);sv('f-status',item.status);sv('f-treat',item.treatment);}if(type==='control')sv('f-type',item.type);if(type==='policy'){sv('f-pcat',item.category);sv('f-pstatus',item.status);sv('f-fw',item.framework);}if(type==='compliance'){sv('f-fw',item.framework);sv('f-status',item.status);}if(type==='issue'){sv('f-pri',item.priority);sv('f-st',item.status);}}},10);}
+function sv(id,val){const el=document.getElementById(id);if(el&&val)el.value=val;}
+function closeModal(){document.getElementById('modal').style.display='none';editId=null;editIdx=null;}
+function g(id){return document.getElementById(id)?.value||'';}
+function saveModal(){if(modalType==='risk'){const name=g('f-name');if(!name){alert('Risk name required');return;}const obj={id:editId||`RSK-${String(data.risks.length+1).padStart(3,'0')}`,name,category:g('f-cat'),description:g('f-desc'),likelihood:Math.min(5,Math.max(1,parseInt(g('f-lik'))||3)),impact:Math.min(5,Math.max(1,parseInt(g('f-imp'))||3)),owner:g('f-owner')||'Unassigned',status:g('f-status'),treatment:g('f-treat')};const isNew=!editId;if(editId){const i=data.risks.findIndex(r=>r.id===editId);data.risks[i]=obj;}else data.risks.push(obj);save();renderRisks();if(isNew){const sev=severity(sc(obj));if(sev==='Critical'&&data.alertPrefs.critical)sendAlert(`Critical Risk: ${obj.name}`,`New Critical risk logged.\nID: ${obj.id}\nScore: ${sc(obj)}\nOwner: ${obj.owner}`);else if(sev==='High'&&data.alertPrefs.high)sendAlert(`High Risk: ${obj.name}`,`New High risk logged.\nID: ${obj.id}\nScore: ${sc(obj)}\nOwner: ${obj.owner}`);}}else if(modalType==='control'){const name=g('f-name');if(!name)return;const obj={id:editId||`CTL-${String(data.controls.length+1).padStart(3,'0')}`,name,type:g('f-type'),effectiveness:parseInt(g('f-eff'))||50,owner:g('f-owner')||'Unassigned',lastTested:g('f-tested')||new Date().toISOString().slice(0,10),mitigates:g('f-mit').split(',').map(s=>s.trim()).filter(Boolean)};if(editId){const i=data.controls.findIndex(c=>c.id===editId);data.controls[i]=obj;}else data.controls.push(obj);save();renderControls();}else if(modalType==='policy'){const name=g('f-name');if(!name)return;const obj={id:editId||`POL-${String(data.policies.length+1).padStart(3,'0')}`,title:name,category:g('f-pcat'),description:g('f-desc'),owner:g('f-owner')||'Unassigned',status:g('f-pstatus'),version:g('f-ver')||'1.0',reviewDate:g('f-review'),framework:g('f-fw')};if(editId){const i=data.policies.findIndex(p=>p.id===editId);data.policies[i]=obj;}else data.policies.push(obj);save();renderPolicies();const days=obj.reviewDate?daysUntil(obj.reviewDate):null;if(days!==null&&days<=30&&data.alertPrefs.policy)sendAlert(`Policy Review Due: ${obj.title}`,`Policy due for review in ${days} days.\nOwner: ${obj.owner}`);}else if(modalType==='compliance'){const req=g('f-req');if(!req)return;const obj={framework:g('f-fw'),requirement:req,status:g('f-status'),owner:g('f-owner')||'Unassigned',dueDate:g('f-due')||'',progress:parseInt(g('f-prog'))||0};if(editIdx!==null)data.compliance[editIdx]=obj;else data.compliance.push(obj);save();renderCompliance();}else if(modalType==='issue'){const iss=g('f-iss');if(!iss)return;const obj={id:editId||`ISS-${String(data.issues.length+1).padStart(3,'0')}`,issue:iss,linkedRisk:g('f-risk'),priority:g('f-pri'),owner:g('f-owner')||'Unassigned',dueDate:g('f-due')||'',status:g('f-st')};if(editId){const i=data.issues.findIndex(x=>x.id===editId);data.issues[i]=obj;}else data.issues.push(obj);save();renderIssues();}closeModal();toast('Saved successfully');}
+function exportCSV(){const rows=[['ID','Risk','Category','Likelihood','Impact','Score','Severity','Owner','Status','Treatment'],...data.risks.map(r=>[r.id,r.name,r.category,r.likelihood,r.impact,sc(r),severity(sc(r)),r.owner,r.status,r.treatment])];const csv=rows.map(r=>r.map(c=>`"${c}"`).join(',')).join('\n');const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='risk-register.csv';a.click();toast('CSV exported');}
+renderDashboard();
 </script>
 </body>
 </html>
