@@ -1,1 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GRC Enterprise – Risk & Controls</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Segoe UI',system-ui;background:#0a0c12;color:#e2e8f0;display:flex}
+        .sidebar{width:260px;background:#11161f;border-right:1px solid #2d3748;min-height:100vh;position:fixed;overflow-y:auto}
+        .logo{padding:20px;font-size:20px;font-weight:bold;color:#7c6af7}
+        .nav{padding:16px}
+        .nav-item{display:block;width:100%;padding:10px;background:none;border:none;color:#94a3b8;text-align:left;border-radius:8px;cursor:pointer;margin-bottom:4px}
+        .nav-item:hover{background:#1a202c;color:white}
+        .nav-item.active{background:#7c6af7;color:white}
+        .main{margin-left:260px;flex:1;min-height:100vh}
+        .topbar{padding:16px 24px;background:#11161f;border-bottom:1px solid #2d3748;display:flex;justify-content:space-between}
+        .topbar-title{font-size:20px;font-weight:600}
+        .content{padding:24px}
+        .btn{background:#7c6af7;color:white;border:none;padding:8px 16px;border-radius:8px;cursor:pointer}
+        .btn-outline{background:transparent;border:1px solid #4a5568;color:#cbd5e1}
+        table{width:100%;border-collapse:collapse;margin-top:16px}
+        th,td{padding:10px;text-align:left;border-bottom:1px solid #2d3748}
+        .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px}
+        .badge-critical{background:#ef444420;color:#ef4444}
+        .badge-high{background:#f59e0b20;color:#f59e0b}
+        .badge-medium{background:#3b82f620;color:#60a5fa}
+        .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:1000}
+        .modal{background:#1a202c;border-radius:16px;width:600px;max-width:90%;padding:20px;max-height:80vh;overflow-y:auto}
+        .form-group{margin-bottom:15px}
+        input,select,textarea{width:100%;background:#0f1117;border:1px solid #2d3748;padding:8px;border-radius:6px;color:white}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        .hidden{display:none}
+        .toast{position:fixed;bottom:20px;right:20px;background:#1e293b;padding:12px 20px;border-radius:8px;z-index:1100}
+        #loginOverlay{position:fixed;inset:0;background:#0a0c12;display:flex;align-items:center;justify-content:center;z-index:2000}
+        .login-card{background:#11161f;border-radius:16px;padding:32px;width:350px;text-align:center}
+        .login-card input{margin:16px 0;width:100%}
+        .error-msg{color:#ef4444;margin-top:8px}
+    </style>
+</head>
+<body>
+<div id="loginOverlay">
+    <div class="login-card">
+        <h2>🔐 GRC Enterprise</h2>
+        <p style="margin:16px 0">Enter password</p>
+        <input type="password" id="passwordInput" placeholder="Password">
+        <button class="btn" id="loginBtn" style="width:100%">Login</button>
+        <div id="loginError" class="error-msg"></div>
+    </div>
+</div>
+<div id="grcApp" style="display:none">
+    <div class="sidebar">
+        <div class="logo">🎯 GRC Enterprise</div>
+        <div class="nav" id="navContainer"></div>
+    </div>
+    <div class="main" id="mainContent"></div>
+</div>
+<div id="modal" class="modal-overlay hidden">
+    <div class="modal">
+        <div id="modalBody"></div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:20px">
+            <button class="btn-outline" onclick="closeModal()">Cancel</button>
+            <button class="btn" onclick="saveModal()">Save</button>
+        </div>
+    </div>
+</div>
+<div id="toast" class="toast hidden"></div>
 
+<script>
+// ======================== PASSWORD PROTECTION ========================
+const DEFAULT_PASS = "admin123";
+function verifyPassword(pwd) { return pwd === DEFAULT_PASS; }
+function logout() { sessionStorage.removeItem('grc_logged_in'); document.getElementById('loginOverlay').style.display='flex'; document.getElementById('grcApp').style.display='none'; }
+function checkLogin() {
+    if(sessionStorage.getItem('grc_logged_in') === 'true') {
+        document.getElementById('loginOverlay').style.display='none';
+        document.getElementById('grcApp').style.display='block';
+        initApp();
+    } else {
+        document.getElementById('loginOverlay').style.display='flex';
+        document.getElementById('grcApp').style.display='none';
+    }
+}
+document.getElementById('loginBtn').onclick = function() {
+    const pwd = document.getElementById('passwordInput').value;
+    if(verifyPassword(pwd)) {
+        sessionStorage.setItem('grc_logged_in', 'true');
+        checkLogin();
+    } else {
+        document.getElementById('loginError').innerText = 'Incorrect password';
+    }
+};
+document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+    if(e.key === 'Enter') document.getElementById('loginBtn').click();
+});
+
+// ======================== DATA MODEL ========================
+const STORE_KEY = 'grc_simple_v1';
+let data = JSON.parse(localStorage.getItem(STORE_KEY)) || {
+    risks: [],
+    controls: []
+};
+
+if(data.risks.length === 0) {
+    data.risks = [
+        {
+            id: "RSK-001", name: "Data Breach", description: "Unauthorized access to sensitive data",
+            category: "Cyber", subCategory: "Data Security", businessUnit: "IT", department: "Infrastructure",
+            owner: "Ahmed", dateIdentified: "2025-01-15", lastReviewDate: "2025-06-01",
+            likelihood: 4, impact: 5, inherentScore: 20, residualScore: 8,
+            trend: "Increasing", riskVelocity: "High", confidenceLevel: "Medium",
+            treatmentStrategy: "Mitigate", treatmentStatus: "In Progress", targetResidualScore: 5,
+            targetClosureDate: "2025-09-30", riskAccepted: "No", acceptedBy: "Risk Committee"
+        },
+        {
+            id: "RSK-002", name: "Supply Chain Disruption", description: "Key supplier failure",
+            category: "Operational", subCategory: "Logistics", businessUnit: "Operations", department: "Procurement",
+            owner: "Sara", dateIdentified: "2025-02-01", lastReviewDate: "2025-06-15",
+            likelihood: 3, impact: 4, inherentScore: 12, residualScore: 6,
+            trend: "Stable", riskVelocity: "Medium", confidenceLevel: "High",
+            treatmentStrategy: "Transfer", treatmentStatus: "Not Started", targetResidualScore: 4,
+            targetClosureDate: "2025-08-30", riskAccepted: "No", acceptedBy: ""
+        },
+        {
+            id: "RSK-003", name: "GDPR Fine", description: "Non-compliance with data protection",
+            category: "Compliance", subCategory: "Regulatory", businessUnit: "Legal", department: "Compliance",
+            owner: "Khalid", dateIdentified: "2025-01-20", lastReviewDate: "2025-05-20",
+            likelihood: 2, impact: 5, inherentScore: 10, residualScore: 4,
+            trend: "Decreasing", riskVelocity: "Low", confidenceLevel: "High",
+            treatmentStrategy: "Mitigate", treatmentStatus: "In Progress", targetResidualScore: 3,
+            targetClosureDate: "2025-07-31", riskAccepted: "No", acceptedBy: ""
+        }
+    ];
+    data.controls = [
+        { id: "CTL-001", name: "Multi-Factor Authentication", type: "Preventive", effectiveness: 90, owner: "IT", lastTested: "2025-03-01", linkedControls: "MFA, DLP", controlCount: 2, controlStatus: "Effective" },
+        { id: "CTL-002", name: "Vendor Security Assessment", type: "Detective", effectiveness: 70, owner: "Procurement", lastTested: "2025-02-15", linkedControls: "Vendor audits", controlCount: 1, controlStatus: "Partially Effective" }
+    ];
+    localStorage.setItem(STORE_KEY, JSON.stringify(data));
+}
+function saveData() { localStorage.setItem(STORE_KEY, JSON.stringify(data)); }
+function toast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.remove('hidden'); setTimeout(()=>t.classList.add('hidden'),3000); }
+
+function getRiskRating(score) {
+    if(score>=16) return "Critical";
+    if(score>=9) return "High";
+    if(score>=4) return "Medium";
+    return "Low";
+}
+function getRiskRatingClass(score) { return "badge-"+getRiskRating(score).toLowerCase(); }
+
+// ======================== RISK REGISTER (full fields table) ========================
+function renderRiskRegister() {
+    let html = `<div class="topbar"><div class="topbar-title">Risk Register</div><button class="btn" onclick="openModal('risk')">+ New Risk</button></div>
+    <div class="content"><div style="overflow-x:auto"><table><thead><tr>
+        <th>ID</th><th>Name</th><th>Description</th><th>Category</th><th>Sub Cat</th><th>Business Unit</th><th>Dept</th>
+        <th>Owner</th><th>Inherent</th><th>Residual</th><th>Rating</th><th>Status</th><th>Actions</th>
+    </tr></thead><tbody>`;
+    data.risks.forEach(r => {
+        html += `<tr>
+            <td>${r.id}</td><td>${r.name}</td><td>${r.description||''}</td><td>${r.category}</td><td>${r.subCategory||''}</td>
+            <td>${r.businessUnit||''}</td><td>${r.department||''}</td><td>${r.owner}</td>
+            <td>${r.inherentScore}</td><td>${r.residualScore}</td>
+            <td><span class="badge ${getRiskRatingClass(r.inherentScore)}">${getRiskRating(r.inherentScore)}</span></td>
+            <td>${r.treatmentStatus||'Open'}</td>
+            <td><button class="btn-outline" onclick="editRisk('${r.id}')">Edit</button> <button class="btn-outline" onclick="deleteRisk('${r.id}')">Del</button></td>
+        </tr>`;
+    });
+    html += `</tbody></table></div></div>`;
+    document.getElementById('mainContent').innerHTML = html;
+}
+
+// ======================== RISK ASSESSMENT & TREATMENT (inline edit) ========================
+function renderRiskAssessment() {
+    let html = `<div class="topbar"><div class="topbar-title">Risk Assessment & Treatment</div></div>
+    <div class="content"><div style="overflow-x:auto"><table><thead><tr>
+        <th>Risk</th><th>Likelihood</th><th>Impact</th><th>Inherent</th><th>Residual</th><th>Rating</th>
+        <th>Trend</th><th>Velocity</th><th>Confidence</th><th>Treatment Strategy</th><th>Treatment Status</th>
+        <th>Target Residual</th><th>Target Date</th><th>Accepted?</th><th>Action</th>
+    </tr></thead><tbody>`;
+    data.risks.forEach(r => {
+        html += `<tr>
+            <td>${r.name}</td>
+            <td><input type="number" id="lik-${r.id}" value="${r.likelihood}" min="1" max="5" style="width:70px"></td>
+            <td><input type="number" id="imp-${r.id}" value="${r.impact}" min="1" max="5" style="width:70px"></td>
+            <td id="inh-${r.id}">${r.inherentScore}</td>
+            <td><input type="number" id="res-${r.id}" value="${r.residualScore}" style="width:70px"></td>
+            <td><span class="badge ${getRiskRatingClass(r.inherentScore)}">${getRiskRating(r.inherentScore)}</span></td>
+            <td><select id="trend-${r.id}">${["Increasing","Stable","Decreasing"].map(o=>`<option ${r.trend===o?'selected':''}>${o}</option>`).join('')}</select></td>
+            <td><select id="vel-${r.id}">${["High","Medium","Low"].map(o=>`<option ${r.riskVelocity===o?'selected':''}>${o}</option>`).join('')}</select></td>
+            <td><select id="conf-${r.id}">${["High","Medium","Low"].map(o=>`<option ${r.confidenceLevel===o?'selected':''}>${o}</option>`).join('')}</select></td>
+            <td><select id="strat-${r.id}">${["Mitigate","Transfer","Accept","Avoid"].map(o=>`<option ${r.treatmentStrategy===o?'selected':''}>${o}</option>`).join('')}</select></td>
+            <td><select id="treatStatus-${r.id}">${["Not Started","In Progress","Completed"].map(o=>`<option ${r.treatmentStatus===o?'selected':''}>${o}</option>`).join('')}</select></td>
+            <td><input type="number" id="targetRes-${r.id}" value="${r.targetResidualScore||0}" style="width:70px"></td>
+            <td><input type="date" id="targetDate-${r.id}" value="${r.targetClosureDate||''}"></td>
+            <td><select id="accepted-${r.id}"><option ${r.riskAccepted==='Yes'?'selected':''}>Yes</option><option ${r.riskAccepted==='No'?'selected':''}>No</option></select></td>
+            <td><button class="btn" onclick="updateRisk('${r.id}')">Update</button></td>
+        </tr>`;
+    });
+    html += `</tbody></table></div></div>`;
+    document.getElementById('mainContent').innerHTML = html;
+}
+
+window.updateRisk = function(riskId) {
+    const r = data.risks.find(r=>r.id===riskId);
+    if(r) {
+        r.likelihood = parseInt(document.getElementById(`lik-${riskId}`).value);
+        r.impact = parseInt(document.getElementById(`imp-${riskId}`).value);
+        r.inherentScore = r.likelihood * r.impact;
+        r.residualScore = parseInt(document.getElementById(`res-${riskId}`).value);
+        r.trend = document.getElementById(`trend-${riskId}`).value;
+        r.riskVelocity = document.getElementById(`vel-${riskId}`).value;
+        r.confidenceLevel = document.getElementById(`conf-${riskId}`).value;
+        r.treatmentStrategy = document.getElementById(`strat-${riskId}`).value;
+        r.treatmentStatus = document.getElementById(`treatStatus-${riskId}`).value;
+        r.targetResidualScore = parseInt(document.getElementById(`targetRes-${riskId}`).value);
+        r.targetClosureDate = document.getElementById(`targetDate-${riskId}`).value;
+        r.riskAccepted = document.getElementById(`accepted-${riskId}`).value;
+        saveData();
+        toast('Risk updated');
+        renderRiskAssessment();
+    }
+};
+
+// ======================== CONTROLS ========================
+function renderControls() {
+    let html = `<div class="topbar"><div class="topbar-title">Control Library</div><button class="btn" onclick="openModal('control')">+ New Control</button></div>
+    <div class="content"><div style="overflow-x:auto"><table><thead><tr>
+        <th>ID</th><th>Name</th><th>Type</th><th>Effectiveness</th><th>Owner</th><th>Last Tested</th>
+        <th>Linked Controls</th><th>Control Count</th><th>Status</th><th>Actions</th>
+    </tr></thead><tbody>`;
+    data.controls.forEach(c => {
+        html += `<tr>
+            <td>${c.id}</td><td>${c.name}</td><td>${c.type}</td><td>${c.effectiveness}%</td>
+            <td>${c.owner}</td><td>${c.lastTested}</td>
+            <td>${c.linkedControls||''}</td><td>${c.controlCount||0}</td>
+            <td><span class="badge">${c.controlStatus||''}</span></td>
+            <td><button class="btn-outline" onclick="editControl('${c.id}')">Edit</button> <button class="btn-outline" onclick="deleteControl('${c.id}')">Del</button></td>
+        </tr>`;
+    });
+    html += `</tbody></table></div></div>`;
+    document.getElementById('mainContent').innerHTML = html;
+}
+
+window.editControl = function(id) {
+    const c = data.controls.find(c=>c.id===id);
+    if(c) openModal('control', c);
+};
+window.deleteControl = function(id) {
+    if(confirm('Delete control?')) {
+        data.controls = data.controls.filter(c=>c.id!==id);
+        saveData();
+        renderControls();
+        toast('Deleted');
+    }
+};
+
+// ======================== MODAL FOR ADD/EDIT ========================
+let currentModalType = null, currentEditId = null;
+window.openModal = function(type, item) {
+    currentModalType = type;
+    currentEditId = item?.id || null;
+    let form = '';
+    if(type === 'risk') {
+        const r = item || {};
+        form = `<div class="form-row"><div class="form-group"><label>Risk Name</label><input id="riskName" value="${r.name||''}"></div><div class="form-group"><label>Risk ID</label><input id="riskId" value="${r.id||`RSK-${data.risks.length+1}`}"></div></div>
+        <div class="form-group"><label>Description</label><textarea id="riskDesc">${r.description||''}</textarea></div>
+        <div class="form-row"><div class="form-group"><label>Category</label><select id="riskCat">${["Cyber","Operational","Compliance","Financial","Strategic"].map(cat=>`<option ${r.category===cat?'selected':''}>${cat}</option>`).join('')}</select></div>
+        <div class="form-group"><label>Sub Category</label><input id="riskSubCat" value="${r.subCategory||''}"></div></div>
+        <div class="form-row"><div class="form-group"><label>Business Unit</label><input id="riskBU" value="${r.businessUnit||''}"></div><div class="form-group"><label>Department</label><input id="riskDept" value="${r.department||''}"></div></div>
+        <div class="form-row"><div class="form-group"><label>Risk Owner</label><input id="riskOwner" value="${r.owner||''}"></div><div class="form-group"><label>Date Identified</label><input type="date" id="riskDateId" value="${r.dateIdentified||''}"></div></div>
+        <div class="form-row"><div class="form-group"><label>Last Review Date</label><input type="date" id="riskLastReview" value="${r.lastReviewDate||''}"></div><div class="form-group"><label>Likelihood (1-5)</label><input type="number" id="riskLik" value="${r.likelihood||3}" min="1" max="5"></div></div>
+        <div class="form-row"><div class="form-group"><label>Impact (1-5)</label><input type="number" id="riskImp" value="${r.impact||3}" min="1" max="5"></div><div class="form-group"><label>Residual Score</label><input type="number" id="riskRes" value="${r.residualScore||0}"></div></div>
+        <div class="form-row"><div class="form-group"><label>Trend</label><select id="riskTrend">${["Increasing","Stable","Decreasing"].map(o=>`<option ${r.trend===o?'selected':''}>${o}</option>`).join('')}</select></div>
+        <div class="form-group"><label>Risk Velocity</label><select id="riskVel">${["High","Medium","Low"].map(o=>`<option ${r.riskVelocity===o?'selected':''}>${o}</option>`).join('')}</select></div></div>
+        <div class="form-row"><div class="form-group"><label>Confidence Level</label><select id="riskConf">${["High","Medium","Low"].map(o=>`<option ${r.confidenceLevel===o?'selected':''}>${o}</option>`).join('')}</select></div>
+        <div class="form-group"><label>Treatment Strategy</label><select id="riskTreatStrat">${["Mitigate","Transfer","Accept","Avoid"].map(o=>`<option ${r.treatmentStrategy===o?'selected':''}>${o}</option>`).join('')}</select></div></div>
+        <div class="form-row"><div class="form-group"><label>Treatment Status</label><select id="riskTreatStatus">${["Not Started","In Progress","Completed"].map(o=>`<option ${r.treatmentStatus===o?'selected':''}>${o}</option>`).join('')}</select></div>
+        <div class="form-group"><label>Target Residual Score</label><input type="number" id="riskTargetRes" value="${r.targetResidualScore||0}"></div></div>
+        <div class="form-row"><div class="form-group"><label>Target Closure Date</label><input type="date" id="riskTargetDate" value="${r.targetClosureDate||''}"></div>
+        <div class="form-group"><label>Risk Accepted</label><select id="riskAccepted"><option ${r.riskAccepted==='Yes'?'selected':''}>Yes</option><option ${r.riskAccepted==='No'?'selected':''}>No</option></select></div></div>
+        <div class="form-group"><label>Accepted By</label><input id="riskAcceptedBy" value="${r.acceptedBy||''}"></div>`;
+    } else if(type === 'control') {
+        const c = item || {};
+        form = `<div class="form-row"><div class="form-group"><label>Control Name</label><input id="ctrlName" value="${c.name||''}"></div><div class="form-group"><label>Control ID</label><input id="ctrlId" value="${c.id||`CTL-${data.controls.length+1}`}"></div></div>
+        <div class="form-row"><div class="form-group"><label>Type</label><select id="ctrlType">${["Preventive","Detective","Corrective"].map(t=>`<option ${c.type===t?'selected':''}>${t}</option>`).join('')}</select></div>
+        <div class="form-group"><label>Effectiveness (%)</label><input type="number" id="ctrlEff" value="${c.effectiveness||0}" min="0" max="100"></div></div>
+        <div class="form-row"><div class="form-group"><label>Owner</label><input id="ctrlOwner" value="${c.owner||''}"></div><div class="form-group"><label>Last Tested</label><input type="date" id="ctrlLastTested" value="${c.lastTested||''}"></div></div>
+        <div class="form-row"><div class="form-group"><label>Linked Controls</label><input id="ctrlLinked" value="${c.linkedControls||''}"></div><div class="form-group"><label>Control Count</label><input type="number" id="ctrlCount" value="${c.controlCount||0}"></div></div>
+        <div class="form-group"><label>Control Status</label><select id="ctrlStatus">${["Effective","Partially Effective","Ineffective"].map(s=>`<option ${c.controlStatus===s?'selected':''}>${s}</option>`).join('')}</select></div>`;
+    }
+    document.getElementById('modalBody').innerHTML = form;
+    document.getElementById('modal').classList.remove('hidden');
+};
+window.closeModal = function() { document.getElementById('modal').classList.add('hidden'); currentModalType=null; };
+window.saveModal = function() {
+    if(currentModalType === 'risk') {
+        const newRisk = {
+            id: document.getElementById('riskId').value,
+            name: document.getElementById('riskName').value,
+            description: document.getElementById('riskDesc').value,
+            category: document.getElementById('riskCat').value,
+            subCategory: document.getElementById('riskSubCat').value,
+            businessUnit: document.getElementById('riskBU').value,
+            department: document.getElementById('riskDept').value,
+            owner: document.getElementById('riskOwner').value,
+            dateIdentified: document.getElementById('riskDateId').value,
+            lastReviewDate: document.getElementById('riskLastReview').value,
+            likelihood: parseInt(document.getElementById('riskLik').value),
+            impact: parseInt(document.getElementById('riskImp').value),
+            inherentScore: parseInt(document.getElementById('riskLik').value) * parseInt(document.getElementById('riskImp').value),
+            residualScore: parseInt(document.getElementById('riskRes').value),
+            trend: document.getElementById('riskTrend').value,
+            riskVelocity: document.getElementById('riskVel').value,
+            confidenceLevel: document.getElementById('riskConf').value,
+            treatmentStrategy: document.getElementById('riskTreatStrat').value,
+            treatmentStatus: document.getElementById('riskTreatStatus').value,
+            targetResidualScore: parseInt(document.getElementById('riskTargetRes').value),
+            targetClosureDate: document.getElementById('riskTargetDate').value,
+            riskAccepted: document.getElementById('riskAccepted').value,
+            acceptedBy: document.getElementById('riskAcceptedBy').value
+        };
+        if(currentEditId) {
+            const idx = data.risks.findIndex(r=>r.id===currentEditId);
+            if(idx!==-1) data.risks[idx] = newRisk;
+        } else {
+            data.risks.push(newRisk);
+        }
+    } else if(currentModalType === 'control') {
+        const newControl = {
+            id: document.getElementById('ctrlId').value,
+            name: document.getElementById('ctrlName').value,
+            type: document.getElementById('ctrlType').value,
+            effectiveness: parseInt(document.getElementById('ctrlEff').value),
+            owner: document.getElementById('ctrlOwner').value,
+            lastTested: document.getElementById('ctrlLastTested').value,
+            linkedControls: document.getElementById('ctrlLinked').value,
+            controlCount: parseInt(document.getElementById('ctrlCount').value),
+            controlStatus: document.getElementById('ctrlStatus').value
+        };
+        if(currentEditId) {
+            const idx = data.controls.findIndex(c=>c.id===currentEditId);
+            if(idx!==-1) data.controls[idx] = newControl;
+        } else {
+            data.controls.push(newControl);
+        }
+    }
+    saveData();
+    closeModal();
+    toast('Saved');
+    renderCurrentPage();
+};
+window.editRisk = function(id) { openModal('risk', data.risks.find(r=>r.id===id)); };
+window.deleteRisk = function(id) {
+    if(confirm('Delete risk?')) {
+        data.risks = data.risks.filter(r=>r.id!==id);
+        saveData();
+        renderCurrentPage();
+        toast('Deleted');
+    }
+};
+
+// ======================== DASHBOARD (simple) ========================
+function renderDashboard() {
+    const total = data.risks.length;
+    const critical = data.risks.filter(r=>getRiskRating(r.inherentScore)==='Critical').length;
+    const avgResidual = data.risks.reduce((a,r)=>a+r.residualScore,0)/total || 0;
+    let html = `<div class="topbar"><div class="topbar-title">Executive Dashboard</div></div>
+    <div class="content">
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px">
+            <div class="stat-card"><div class="stat-value">${total}</div><div>Total Risks</div></div>
+            <div class="stat-card"><div class="stat-value">${critical}</div><div>Critical Risks</div></div>
+            <div class="stat-card"><div class="stat-value">${avgResidual.toFixed(1)}</div><div>Avg Residual Score</div></div>
+        </div>
+        <div class="stat-card" style="margin-top:20px"><h3>Risks Above Appetite</h3><ul>${data.risks.filter(r=>r.inherentScore>10).map(r=>`<li>${r.name} (${r.inherentScore})</li>`).join('')||'<li>None</li>'}</ul></div>
+    </div>`;
+    document.getElementById('mainContent').innerHTML = html;
+}
+
+// ======================== NAVIGATION ========================
+let currentPage = "dashboard";
+const modules = [
+    {page:"dashboard", label:"📊 Dashboard"},
+    {page:"riskRegister", label:"📋 Risk Register"},
+    {page:"riskAssessment", label:"📝 Risk Assessment & Treatment"},
+    {page:"controls", label:"🔒 Controls"}
+];
+function renderCurrentPage() {
+    if(currentPage === "dashboard") renderDashboard();
+    else if(currentPage === "riskRegister") renderRiskRegister();
+    else if(currentPage === "riskAssessment") renderRiskAssessment();
+    else if(currentPage === "controls") renderControls();
+}
+function initApp() {
+    const navContainer = document.getElementById('navContainer');
+    navContainer.innerHTML = '';
+    modules.forEach(mod => {
+        const btn = document.createElement('button');
+        btn.className = 'nav-item' + (mod.page === currentPage ? ' active' : '');
+        btn.innerText = mod.label;
+        btn.onclick = () => {
+            document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+            btn.classList.add('active');
+            currentPage = mod.page;
+            renderCurrentPage();
+        };
+        navContainer.appendChild(btn);
+    });
+    renderCurrentPage();
+}
+checkLogin();
+</script>
+</body>
+</html>
