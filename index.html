@@ -189,7 +189,15 @@ select option{background:var(--bg3)}
 <!-- DASHBOARD -->
 <div class="page active" id="page-dashboard">
   <div class="topbar"><div><div class="topbar-title">Dashboard</div><div class="topbar-sub">Risk overview and key indicators</div></div></div>
-  <div class="content"><div class="stat-grid" id="stat-grid"></div><div class="kri-grid" id="kri-grid"></div>
+  <div class="content"><div class="stat-grid" id="stat-grid"></div><div class="kri-grid" id="kri-grid"></div><div class="kri-grid" id="kpi-grid"></div>
+    <div class="section-card" id="overdue-section" style="display:none">
+      <div class="section-header"><span class="section-title" style="color:var(--red)">⏰ Overdue Risks</span><span class="section-sub" id="overdue-count"></span></div>
+      <table><thead><tr><th>ID</th><th>Risk</th><th>Score</th><th>Severity</th><th>Owner</th><th>Due Date</th><th>Days Overdue</th></tr></thead><tbody id="overdue-table"></tbody></table>
+    </div>
+    <div class="section-card" id="duesoon-section" style="display:none">
+      <div class="section-header"><span class="section-title" style="color:var(--amber)">📅 Due This Week</span><span class="section-sub" id="duesoon-count"></span></div>
+      <table><thead><tr><th>ID</th><th>Risk</th><th>Score</th><th>Owner</th><th>Treatment Status</th><th>Due Date</th></tr></thead><tbody id="duesoon-table"></tbody></table>
+    </div>
     <div class="section-card"><div class="section-header"><span class="section-title">Top risks requiring attention</span></div>
     <table><thead><tr><th>ID</th><th>Risk</th><th>Score</th><th>Residual</th><th>Severity</th><th>Trend</th><th>Appetite Breach</th><th>Owner</th><th>Due Date</th></tr></thead><tbody id="top-risks-table"></tbody></table></div>
   </div>
@@ -393,6 +401,31 @@ function renderDashboard(){
     <div class="kri-card"><div class="kri-title">Control Effectiveness</div><div class="kri-value" style="color:${avgEff>=70?'var(--teal)':avgEff>=50?'var(--amber)':'var(--red)'}">${avgEff}%</div><div class="kri-bar-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${avgEff}%;background:${avgEff>=70?'var(--teal)':avgEff>=50?'var(--amber)':'var(--red)'}"></div></div></div><div class="kri-threshold">Target: ≥70%</div></div>
     <div class="kri-card"><div class="kri-title">Compliance Rate</div><div class="kri-value" style="color:${compRate>=80?'var(--teal)':compRate>=60?'var(--amber)':'var(--red)'}">${compRate}%</div><div class="kri-bar-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${compRate}%;background:${compRate>=80?'var(--teal)':compRate>=60?'var(--amber)':'var(--red)'}"></div></div></div><div class="kri-threshold">Target: ≥80%</div></div>
     <div class="kri-card"><div class="kri-title">Risk Closure Rate</div><div class="kri-value" style="color:var(--purple)">${closeRate}%</div><div class="kri-bar-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${closeRate}%;background:var(--purple)"></div></div></div><div class="kri-threshold">Closed vs total</div></div>`;
+
+  // KPIs
+  const overdue=open.filter(r=>r.dueDate&&daysUntil(r.dueDate)<0);
+  const dueSoon=open.filter(r=>r.dueDate&&daysUntil(r.dueDate)>=0&&daysUntil(r.dueDate)<=7);
+  const onTrack=open.length?Math.round(open.filter(r=>!r.dueDate||daysUntil(r.dueDate)>=0).length/open.length*100):100;
+  const trendingUp=open.filter(r=>r.trend==='Up').length;
+  document.getElementById('kpi-grid').innerHTML=`
+    <div class="kri-card"><div class="kri-title">Risks On Track</div><div class="kri-value" style="color:${onTrack>=80?'var(--teal)':onTrack>=50?'var(--amber)':'var(--red)'}">${onTrack}%</div><div class="kri-bar-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${onTrack}%;background:${onTrack>=80?'var(--teal)':onTrack>=50?'var(--amber)':'var(--red)'}"></div></div></div><div class="kri-threshold">${overdue.length} overdue</div></div>
+    <div class="kri-card"><div class="kri-title">Avg Residual Reduction</div><div class="kri-value" style="color:var(--teal)">${(()=>{const diffs=data.risks.filter(r=>r.residualScore!=null).map(r=>sc(r)-r.residualScore);return diffs.length?Math.round(diffs.reduce((a,b)=>a+b,0)/diffs.length*10)/10:0;})()}</div><div class="kri-bar-wrap"><div class="kri-threshold" style="margin-top:8px">Inherent → Residual score drop</div></div></div>
+    <div class="kri-card"><div class="kri-title">Risks Trending Up</div><div class="kri-value" style="color:${trendingUp>0?'var(--red)':'var(--teal)'}">${trendingUp}</div><div class="kri-bar-wrap"><div class="kri-threshold" style="margin-top:8px">${trendingUp>0?'⚠️ Worsening risk exposure':'✅ No worsening risks'}</div></div></div>`;
+
+  // Overdue panel
+  if(overdue.length){
+    document.getElementById('overdue-section').style.display='block';
+    document.getElementById('overdue-count').textContent=`${overdue.length} risk(s) past due date`;
+    document.getElementById('overdue-table').innerHTML=overdue.map(r=>`<tr><td><b>${r.id}</b></td><td>${r.name}</td><td><div class="risk-score" style="background:${scoreColor(sc(r))}">${sc(r)}</div></td><td><span class="badge ${sevClass(severity(sc(r)))}">${severity(sc(r))}</span></td><td><span class="avatar">${initials(r.owner)}</span>${r.owner.split(' ')[0]}</td><td style="color:var(--red);font-size:12px">${r.dueDate}</td><td style="color:var(--red);font-weight:600">${Math.abs(daysUntil(r.dueDate))}d</td></tr>`).join('');
+  }else document.getElementById('overdue-section').style.display='none';
+
+  // Due soon panel
+  if(dueSoon.length){
+    document.getElementById('duesoon-section').style.display='block';
+    document.getElementById('duesoon-count').textContent=`${dueSoon.length} risk(s) due within 7 days`;
+    document.getElementById('duesoon-table').innerHTML=dueSoon.map(r=>`<tr><td><b>${r.id}</b></td><td>${r.name}</td><td><div class="risk-score" style="background:${scoreColor(sc(r))}">${sc(r)}</div></td><td><span class="avatar">${initials(r.owner)}</span>${r.owner.split(' ')[0]}</td><td style="font-size:12px;color:var(--text3)">${r.treatmentStatus||r.treatment||'—'}</td><td style="color:var(--amber);font-size:12px">${r.dueDate} (${daysUntil(r.dueDate)}d)</td></tr>`).join('');
+  }else document.getElementById('duesoon-section').style.display='none';
+
   const top=[...data.risks].sort((a,b)=>sc(b)-sc(a)).slice(0,6);
   document.getElementById('top-risks-table').innerHTML=top.map(r=>`
     <tr><td><b>${r.id}</b></td><td>${r.name}</td>
