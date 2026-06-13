@@ -158,9 +158,45 @@ select option{background:var(--bg3)}
 /* Asset styles */
 .asset-type-icon{width:30px;height:30px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-size:14px;margin-right:8px;vertical-align:middle}
 @media(max-width:900px){.stat-grid{grid-template-columns:repeat(2,1fr)}.kri-grid{grid-template-columns:repeat(2,1fr)}.report-grid{grid-template-columns:repeat(2,1fr)}}
+/* Login */
+#login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:1000}
+.login-box{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:36px 32px;width:100%;max-width:380px}
+.login-logo{display:flex;flex-direction:column;align-items:center;margin-bottom:24px}
+.login-icon{width:52px;height:52px;background:var(--purple-bg);border:1px solid var(--purple);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:12px}
+.login-title{font-size:18px;font-weight:600}
+.login-sub{font-size:12px;color:var(--text3);margin-top:2px}
+.login-error{background:var(--red-bg);border:1px solid rgba(239,68,68,.2);color:var(--red);font-size:12px;padding:8px 12px;border-radius:6px;margin-bottom:14px;display:none}
+.login-hint{font-size:11px;color:var(--text3);margin-top:16px;text-align:center;line-height:1.6}
+#app-wrap{display:none;width:100%}
+.user-pill{display:flex;align-items:center;gap:8px;padding:10px 12px;margin:8px;border-top:1px solid var(--border);padding-top:14px}
+.user-info{flex:1;min-width:0}
+.user-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-role{font-size:10px;color:var(--text3)}
+.logout-btn{background:none;border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer}
+.logout-btn:hover{background:var(--bg3);color:var(--text)}
+.user-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid rgba(42,51,82,.4)}
+.user-row:last-child{border-bottom:none}
 </style>
 </head>
 <body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-icon">🛡️</div>
+      <div class="login-title">GRC-Control</div>
+      <div class="login-sub">Sign in to access Risk Management</div>
+    </div>
+    <div class="login-error" id="login-error">Invalid username or password</div>
+    <div class="form-group"><label>Username</label><input id="login-user" placeholder="Enter username" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+    <div class="form-group"><label>Password</label><input id="login-pass" type="password" placeholder="Enter password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:10px" onclick="doLogin()">Sign In</button>
+    <div class="login-hint">Default login: <b>admin</b> / <b>admin123</b><br>Change this after first login in User Management.</div>
+  </div>
+</div>
+
+<div id="app-wrap">
 <nav class="sidebar">
   <div class="logo">
     <div class="logo-mark">
@@ -181,7 +217,13 @@ select option{background:var(--bg3)}
     <button class="nav-item" onclick="showPage('reports',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>Reports</button>
     <div class="nav-section">Settings</div>
     <button class="nav-item" onclick="showPage('email',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Email Alerts</button>
+    <button class="nav-item" onclick="showPage('users',this)" id="nav-users"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>User Management</button>
     <button class="nav-item" onclick="exportCSV()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export CSV</button>
+  </div>
+  <div class="user-pill">
+    <span class="avatar" id="current-user-avatar">??</span>
+    <div class="user-info"><div class="user-name" id="current-user-name">User</div><div class="user-role" id="current-user-role">Role</div></div>
+    <button class="logout-btn" onclick="doLogout()">Logout</button>
   </div>
 </nav>
 <div class="main">
@@ -317,7 +359,24 @@ select option{background:var(--bg3)}
   </div>
 </div>
 
+<!-- USER MANAGEMENT -->
+<div class="page" id="page-users">
+  <div class="topbar"><div><div class="topbar-title">User Management</div><div class="topbar-sub">Manage who can access this tool</div></div><button class="btn btn-primary" onclick="openModal('user')">+ New User</button></div>
+  <div class="content">
+    <div class="warn-box">⚠️ This protects against casual access only. Anyone who views the page source can see hashed credentials. For sensitive data, use a real backend (e.g. Supabase Auth).</div>
+    <div class="section-card">
+      <div id="users-list"></div>
+    </div>
+    <div class="settings-panel">
+      <div class="settings-title">Change My Password</div><div class="settings-sub">Update the password for your current account</div>
+      <div class="form-row"><div class="form-group"><label>New Password</label><input id="pw-new" type="password" placeholder="New password"/></div><div class="form-group"><label>Confirm Password</label><input id="pw-confirm" type="password" placeholder="Confirm new password"/></div></div>
+      <button class="btn btn-primary" onclick="changeMyPassword()">Update Password</button>
+    </div>
+  </div>
+</div>
+
 </div><!-- end main -->
+</div><!-- end app-wrap -->
 
 <!-- MODAL -->
 <div class="modal-overlay" id="modal" style="display:none" onclick="if(event.target===this)closeModal()">
@@ -327,6 +386,7 @@ select option{background:var(--bg3)}
 
 <script>
 const STORE_KEY='grc_data_v4';
+function hashPw(pw){let h=0;const s=pw+'grc-salt-2026';for(let i=0;i<s.length;i++){h=((h<<5)-h+s.charCodeAt(i))|0;}return h.toString(36);}
 let data=JSON.parse(localStorage.getItem(STORE_KEY)||'null')||{
 risks:[
 {id:'RSK-001',name:'Data breach via phishing',category:'Technology',likelihood:4,impact:5,residualScore:12,owner:'Ahmed Al-Rashid',status:'Open',description:'Phishing attacks leading to credential theft.',treatment:'Mitigate',treatmentStatus:'In Progress',dueDate:'2026-08-01',lastReview:'2026-05-01',trend:'Up',appetiteBreach:'Yes'},
@@ -371,7 +431,8 @@ assets:[
 {id:'AST-005',name:'IT Operations Team',type:'People',owner:'Marcus Webb',criticality:'High',location:'Doha HQ',linkedRisks:['RSK-005'],lastReviewed:'2026-04-01',description:'Core team managing critical systems.'},
 ],
 emailConfig:{pubKey:'',serviceId:'',templateId:'',email:''},
-alertPrefs:{critical:true,high:true,appetite:true,overdue:true,policy:true}
+alertPrefs:{critical:true,high:true,appetite:true,overdue:true,policy:true},
+users:[{username:'admin',password:hashPw('admin123'),role:'Administrator',name:'Administrator'}]
 };
 function save(){localStorage.setItem(STORE_KEY,JSON.stringify(data));}
 function severity(s){if(s>=16)return'Critical';if(s>=9)return'High';if(s>=4)return'Medium';return'Low';}
@@ -383,7 +444,51 @@ function trendIcon(t){if(t==='Up')return'<span class="trend-up">↑</span>';if(t
 function daysUntil(d){return d?Math.ceil((new Date(d)-new Date())/(1000*60*60*24)):null;}
 let modalType='',editId=null,editIdx=null;
 function toast(msg,type='success'){const t=document.getElementById('toast'),dot=document.getElementById('toast-dot');document.getElementById('toast-msg').textContent=msg;dot.style.background=type==='error'?'var(--red)':type==='warn'?'var(--amber)':'var(--teal)';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
-function showPage(name,el){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));document.getElementById('page-'+name).classList.add('active');if(el)el.classList.add('active');({dashboard:renderDashboard,risks:renderRisks,heatmap:renderHeatmap,controls:renderControls,policies:renderPolicies,compliance:renderCompliance,issues:renderIssues,assets:renderAssets,reports:()=>{},email:renderEmail})[name]?.();}
+function showPage(name,el){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));document.getElementById('page-'+name).classList.add('active');if(el)el.classList.add('active');({dashboard:renderDashboard,risks:renderRisks,heatmap:renderHeatmap,controls:renderControls,policies:renderPolicies,compliance:renderCompliance,issues:renderIssues,assets:renderAssets,reports:()=>{},email:renderEmail,users:renderUsers})[name]?.();}
+
+// ── AUTH ─────────────────────────────────────────────────────
+const SESSION_KEY='grc_session_v1';
+let currentUser=null;
+function doLogin(){
+  const u=document.getElementById('login-user').value.trim();
+  const p=document.getElementById('login-pass').value;
+  const user=data.users.find(x=>x.username.toLowerCase()===u.toLowerCase()&&x.password===hashPw(p));
+  if(!user){document.getElementById('login-error').style.display='block';return;}
+  currentUser=user.username;
+  sessionStorage.setItem(SESSION_KEY,user.username);
+  enterApp();
+}
+function doLogout(){sessionStorage.removeItem(SESSION_KEY);currentUser=null;document.getElementById('app-wrap').style.display='none';document.getElementById('login-screen').style.display='flex';document.getElementById('login-user').value='';document.getElementById('login-pass').value='';document.getElementById('login-error').style.display='none';}
+function enterApp(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app-wrap').style.display='flex';
+  const user=data.users.find(x=>x.username===currentUser);
+  if(user){
+    document.getElementById('current-user-avatar').textContent=initials(user.name||user.username);
+    document.getElementById('current-user-name').textContent=user.name||user.username;
+    document.getElementById('current-user-role').textContent=user.role||'User';
+    document.getElementById('nav-users').style.display=(user.role==='Administrator')?'flex':'none';
+  }
+  renderDashboard();
+}
+function checkSession(){
+  const saved=sessionStorage.getItem(SESSION_KEY);
+  if(saved&&data.users.find(x=>x.username===saved)){currentUser=saved;enterApp();}
+  else{document.getElementById('login-screen').style.display='flex';document.getElementById('app-wrap').style.display='none';}
+}
+function renderUsers(){
+  document.getElementById('users-list').innerHTML=data.users.map((u,i)=>`<div class="user-row"><div><span class="avatar">${initials(u.name||u.username)}</span><b>${u.name||u.username}</b> <span style="color:var(--text3);font-size:12px">@${u.username}</span> <span class="badge badge-medium" style="margin-left:6px">${u.role}</span></div><div style="display:flex;gap:6px"><button class="btn btn-ghost" style="padding:3px 8px;font-size:11px" onclick='openModal("user",data.users.find(x=>x.username==="${u.username}"))'>Edit</button>${data.users.length>1?`<button class="btn btn-danger" style="padding:3px 8px;font-size:11px" onclick="deleteUser(${i})">Delete</button>`:''}</div></div>`).join('');
+}
+function deleteUser(i){if(data.users.length<=1){toast('Cannot delete the last user','error');return;}if(data.users[i].username===currentUser){toast('Cannot delete your own account while logged in','error');return;}if(!confirm('Delete this user?'))return;data.users.splice(i,1);save();renderUsers();toast('User deleted');}
+function changeMyPassword(){
+  const p1=document.getElementById('pw-new').value,p2=document.getElementById('pw-confirm').value;
+  if(!p1||p1.length<4){toast('Password must be at least 4 characters','error');return;}
+  if(p1!==p2){toast('Passwords do not match','error');return;}
+  const user=data.users.find(x=>x.username===currentUser);
+  user.password=hashPw(p1);save();
+  document.getElementById('pw-new').value='';document.getElementById('pw-confirm').value='';
+  toast('Password updated ✓');
+}
 
 function renderDashboard(){
   const open=data.risks.filter(r=>r.status!=='Closed');
@@ -575,7 +680,7 @@ function sendAlert(subject,message){const c=data.emailConfig;if(!c.pubKey||!c.se
 
 // ── MODALS ────────────────────────────────────────────────────
 function openModal(type,item,idx){
-  modalType=type;editId=item?.id||null;editIdx=idx!==undefined?idx:null;
+  modalType=type;editId=item?.id||item?.username||null;editIdx=idx!==undefined?idx:null;
   const F={
     risk:`<div class="form-row"><div class="form-group"><label>Risk Name *</label><input id="f-name" value="${item?.name||''}" placeholder="Describe the risk"/></div><div class="form-group"><label>Category</label><select id="f-cat"><option>Operational</option><option>Financial</option><option>Strategic</option><option>Compliance</option><option>Technology</option><option>Reputational</option></select></div></div>
     <div class="form-group"><label>Description</label><textarea id="f-desc">${item?.description||''}</textarea></div>
@@ -604,9 +709,11 @@ function openModal(type,item,idx){
     <div class="form-group"><label>Description</label><textarea id="f-desc">${item?.description||''}</textarea></div>
     <div class="form-row"><div class="form-group"><label>Owner</label><input id="f-owner" value="${item?.owner||''}"/></div><div class="form-group"><label>Criticality</label><select id="f-crit"><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select></div></div>
     <div class="form-row"><div class="form-group"><label>Location</label><input id="f-loc" value="${item?.location||''}" placeholder="e.g. AWS us-east-1, On-Premise"/></div><div class="form-group"><label>Last Reviewed</label><input id="f-reviewed" type="date" value="${item?.lastReviewed||''}"/></div></div>
-    <div class="form-group"><label>Linked Risk IDs (comma separated)</label><input id="f-risks" value="${item?.linkedRisks?.join(',')||''}" placeholder="RSK-001, RSK-002"/></div>`
+    <div class="form-group"><label>Linked Risk IDs (comma separated)</label><input id="f-risks" value="${item?.linkedRisks?.join(',')||''}" placeholder="RSK-001, RSK-002"/></div>`,
+    user:`<div class="form-row"><div class="form-group"><label>Full Name *</label><input id="f-name" value="${item?.name||''}" placeholder="e.g. Jane Smith"/></div><div class="form-group"><label>Username *</label><input id="f-username" value="${item?.username||''}" placeholder="e.g. jsmith" ${item?'disabled':''}/></div></div>
+    <div class="form-row"><div class="form-group"><label>${item?'New Password (leave blank to keep current)':'Password *'}</label><input id="f-pw" type="password" placeholder="${item?'••••••••':'Set a password'}"/></div><div class="form-group"><label>Role</label><select id="f-role"><option>Viewer</option><option>Editor</option><option>Administrator</option></select></div></div>`
   };
-  document.getElementById('modal-title').textContent=(item?'Edit ':'Add ')+{risk:'Risk',control:'Control',policy:'Policy',compliance:'Compliance Item',issue:'Issue',asset:'Asset'}[type];
+  document.getElementById('modal-title').textContent=(item?'Edit ':'Add ')+{risk:'Risk',control:'Control',policy:'Policy',compliance:'Compliance Item',issue:'Issue',asset:'Asset',user:'User'}[type];
   document.getElementById('modal-body').innerHTML=F[type];
   document.getElementById('modal').style.display='flex';
   setTimeout(()=>{if(item){
@@ -616,6 +723,7 @@ function openModal(type,item,idx){
     if(type==='compliance'){sv('f-fw',item.framework);sv('f-status',item.status);}
     if(type==='issue'){sv('f-pri',item.priority);sv('f-st',item.status);}
     if(type==='asset'){sv('f-atype',item.type);sv('f-crit',item.criticality);}
+    if(type==='user'){sv('f-role',item.role);}
   }},10);
 }
 function sv(id,val){const el=document.getElementById(id);if(el&&val!==undefined)el.value=val;}
@@ -657,6 +765,18 @@ function saveModal(){
     const obj={id:editId||`AST-${String(data.assets.length+1).padStart(3,'0')}`,name,type:g('f-atype'),description:g('f-desc'),owner:g('f-owner')||'Unassigned',criticality:g('f-crit'),location:g('f-loc'),linkedRisks:g('f-risks').split(',').map(s=>s.trim()).filter(Boolean),lastReviewed:g('f-reviewed')};
     if(editId){const i=data.assets.findIndex(a=>a.id===editId);data.assets[i]=obj;}else data.assets.push(obj);
     save();renderAssets();
+  }else if(modalType==='user'){
+    const name=g('f-name'),username=g('f-username'),pw=g('f-pw'),role=g('f-role');
+    if(!name||!username){alert('Name and username required');return;}
+    if(editId){
+      const u=data.users.find(x=>x.username===editId);
+      u.name=name;u.role=role;if(pw)u.password=hashPw(pw);
+    }else{
+      if(data.users.find(x=>x.username.toLowerCase()===username.toLowerCase())){alert('Username already exists');return;}
+      if(!pw){alert('Password required for new user');return;}
+      data.users.push({username,password:hashPw(pw),role,name});
+    }
+    save();renderUsers();
   }
   closeModal();toast('Saved successfully ✓');
 }
@@ -666,7 +786,7 @@ function exportCSV(){
   const csv=rows.map(r=>r.map(c=>`"${c}"`).join(',')).join('\n');
   const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='grc-risk-register.csv';a.click();toast('CSV exported ✓');
 }
-renderDashboard();
+checkSession();
 </script>
 </body>
 </html>
